@@ -84,4 +84,4 @@ def update_coupon_admin_fields(coupon_id, target_fields, selected_products=None)
                 CouponProduct.objects.bulk_create(new_mappings)
 
     return updated_coupon
-
+## 1 +_ 1 = 2
