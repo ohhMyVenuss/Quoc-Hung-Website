@@ -1,0 +1,115 @@
+# ==============================================================================
+# GITIGNORE - DỰ ÁN WEBSITE QUỐC HÙNG MOBILE (DJANGO)
+# ==============================================================================
+
+# 1. Môi trường ảo Python (Virtual Environments)
+# Tuyệt đối không commit môi trường ảo vào Git (dung lượng lớn, phụ thuộc đường dẫn máy cá nhân)
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 2. Bytecode & Cache của Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 3. Database cục bộ (Local SQLite Database)
+# Tránh xung đột merge database và bảo vệ dữ liệu test/tài khoản cá nhân
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-shm
+*.sqlite3-wal
+db.sqlite3
+
+# 4. File cấu hình môi trường & Bí mật (Secrets / Credentials)
+# Tránh làm lộ API Key, Secret Key lên repository
+.env
+.env.*
+!.env.example
+local_settings.py
+
+# 5. File tĩnh và File đa phương tiện (Static & Media Uploads)
+# Staticfiles thu thập từ collectstatic
+staticfiles/
+# File do người dùng/nhân viên upload trong quá trình test hoặc vận hành
+media/*
+!media/.gitkeep
+
+# 6. Nhật ký hệ thống & Gỡ lỗi (Logs & Debug)
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 7. IDE, Trình soạn thảo mã nguồn & Công cụ phát triển
+# PyCharm / IntelliJ
+.idea/
+# Visual Studio Code
+.vscode/
+*.code-workspace
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+# Vim / Emacs
+*.swp
+*.swo
+*~
+\#*\#
+.#*
+
+# 8. Tệp hệ điều hành tự động sinh (OS Generated Files)
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# 9. Testing & Code Quality Tools
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+htmlcov/
+.mypy_cache/
+.ruff_cache/

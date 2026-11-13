@@ -1,0 +1,258 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng thông tin tài khoản — Quốc Hùng Mobile</title>
+    <meta name="description" content="Cổng thông tin tài khoản người dùng và vai trò hệ thống Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+<body>
+
+
+    {% include 'includes/account_navigation.html' with active_nav='landing' %}
+
+
+    <main class="main-content">
+        <div class="landing-card">
+
+            <div class="landing-header">
+                <div class="landing-avatar">
+                    {{ user.username|first|upper }}
+                </div>
+                <div>
+                    <h1 class="landing-welcome-title">Xin chào, {{ user.username }}!</h1>
+                    <p class="landing-welcome-sub">Cổng thông tin tài khoản người dùng — Quốc Hùng Mobile</p>
+                </div>
+            </div>
+
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            {% if message.tags == 'error' %}
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            {% else %}
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            {% endif %}
+                        </svg>
+                        <div>{{ message }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+
+            <div class="info-grid">
+                <div class="info-label">Tên đăng nhập:</div>
+                <div class="info-value" id="user-display-username">{{ user.username }}</div>
+
+                <div class="info-label">Email:</div>
+                <div class="info-value" id="user-display-email">{{ user.email|default:"Chưa thiết lập" }}</div>
+
+                <div class="info-label">Số điện thoại:</div>
+                <div class="info-value" id="user-display-phone">{{ user.customer_profile.phone|default:"Chưa thiết lập" }}</div>
+
+                <div class="info-label">Trạng thái:</div>
+                <div class="info-value" id="user-display-status" style="{% if user.is_active %}color: var(--success);{% else %}color: var(--danger, #dc2626);{% endif %} font-weight: 600;">
+                    {% if user.is_active %}
+                        ✓ Đang hoạt động (Active)
+                    {% else %}
+                        ✗ Bị vô hiệu hóa (Inactive)
+                    {% endif %}
+                </div>
+
+                <div class="info-label">Vai trò hệ thống:</div>
+                <div class="info-value">
+                    <div class="role-badge-list" id="role-badges">
+                        {% if is_customer %}
+                            <span class="role-badge role-badge-customer" id="badge-customer">Khách hàng (Customer)</span>
+                        {% endif %}
+                        {% if is_sales_staff %}
+                            <span class="role-badge role-badge-sales" id="badge-sales">Nhân viên bán hàng (Sales Staff)</span>
+                        {% endif %}
+                        {% if is_inventory_staff %}
+                            <span class="role-badge role-badge-inventory" id="badge-inventory">Nhân viên kho (Inventory Staff)</span>
+                        {% endif %}
+                        {% if is_admin %}
+                            <span class="role-badge role-badge-admin" id="badge-admin">Quản trị viên (Admin)</span>
+                        {% endif %}
+                        {% if not roles %}
+                            <span class="role-badge role-badge-none" id="badge-none">Chưa phân vai trò</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="landing-notice">
+                <strong>📌 Thông báo hệ thống:</strong> Đây là trang điều hướng tài khoản trung tâm của Quốc Hùng Mobile sau khi đăng nhập thành công. Các màn hình chức năng chi tiết (Quản lý hồ sơ, Theo dõi đơn hàng, Quản lý kho, Dashboard bán hàng) sẽ được triển khai trực tiếp trong các giai đoạn kế tiếp theo đúng lộ trình SRS v2.3.
+            </div>
+
+
+            <div class="landing-actions">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                    <a href="{% url 'catalog:public_catalog' %}" class="btn-primary" id="btn-public-catalog" style="padding: 10px 18px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                        Xem sản phẩm
+                    </a>
+
+                    {% if is_customer %}
+                        <a href="{% url 'accounts:profile' %}" class="btn-primary" id="btn-customer-profile" style="padding: 10px 18px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Hồ sơ của tôi
+                        </a>
+                    {% endif %}
+
+                    {% if is_sales_staff %}
+                        <a href="{% url 'catalog:category_list' %}" class="btn-primary" id="btn-category-management" style="background-color: var(--navy-800); padding: 10px 18px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="8" y1="6" x2="21" y2="6"></line>
+                                <line x1="8" y1="12" x2="21" y2="12"></line>
+                                <line x1="8" y1="18" x2="21" y2="18"></line>
+                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                            </svg>
+                            Quản lý danh mục
+                        </a>
+                        <a href="{% url 'catalog:product_list' %}" class="btn-primary" id="btn-product-management" style="background-color: var(--navy-800); padding: 10px 18px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <path d="M16 10a4 4 0 0 1-8 0"></path>
+                            </svg>
+                            Quản lý sản phẩm
+                        </a>
+                    {% endif %}
+
+                    {% if is_inventory_staff %}
+                        <a href="{% url 'inventory:inventory_list' %}" class="btn-primary" id="btn-inventory-management" style="background-color: var(--navy-800); padding: 10px 18px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                            </svg>
+                            Quản lý kho hàng
+                        </a>
+                    {% endif %}
+
+                    {% if is_admin %}
+                        <a href="{% url 'accounts:staff_list' %}" class="btn-primary" id="btn-staff-management" style="background-color: var(--navy-800); padding: 10px 18px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            Quản lý nhân viên
+                        </a>
+                        <a href="{% url 'coupons:coupon_list' %}" class="btn-primary" id="btn-coupon-management" style="background-color: var(--navy-800); padding: 10px 18px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                            </svg>
+                            Quản lý Voucher
+                        </a>
+                    {% endif %}
+
+                    {% if can_access_django_admin %}
+                        <a href="{% url 'admin:index' %}" class="btn-admin" id="btn-admin-access">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            Trang quản trị Django (/admin/)
+                        </a>
+                    {% else %}
+                        <a href="{% url 'bootstrap_test' %}" class="btn-admin" style="background-color: var(--slate-700);" id="btn-test-page">
+                            Trang kiểm thử kỹ thuật (/test/)
+                        </a>
+                    {% endif %}
+                </div>
+
+
+                <form method="post" action="{% url 'accounts:logout' %}" style="margin: 0;" id="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout" id="btn-logout">ĐĂNG XUẤT</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+
+            <div class="footer-col">
+                <span class="footer-heading">VỀ QUỐC HÙNG MOBILE</span>
+                <p class="footer-about">
+                    Hệ thống bán lẻ điện thoại di động, máy tính bảng, laptop và phụ kiện công nghệ chính hãng hàng đầu. Cam kết chất lượng, bảo hành uy tín và giá cả cạnh tranh.
+                </p>
+                <div class="footer-hotline-box">
+                    <span class="hotline-label">TỔNG ĐÀI HỖ TRỢ (MIỄN PHÍ)</span>
+                    <span class="hotline-number">1800 6868</span>
+                </div>
+            </div>
+
+
+            <div class="footer-col">
+                <span class="footer-heading">CHÍNH SÁCH MUA HÀNG</span>
+                <ul class="footer-links">
+                    <li class="footer-links-item"><a href="#warranty" class="footer-link">Chính sách bảo hành</a></li>
+                    <li class="footer-links-item"><a href="#return" class="footer-link">Chính sách đổi trả hàng</a></li>
+                    <li class="footer-links-item"><a href="#shipping" class="footer-link">Phương thức vận chuyển</a></li>
+                    <li class="footer-links-item"><a href="#installment" class="footer-link">Hướng dẫn trả góp 0%</a></li>
+                    <li class="footer-links-item"><a href="#terms" class="footer-link">Điều khoản dịch vụ</a></li>
+                </ul>
+            </div>
+
+
+            <div class="footer-col">
+                <span class="footer-heading">HỖ TRỢ KHÁCH HÀNG</span>
+                <ul class="footer-links">
+                    <li class="footer-links-item"><a href="#faq" class="footer-link">Câu hỏi thường gặp (FAQ)</a></li>
+                    <li class="footer-links-item"><a href="#order-lookup" class="footer-link">Tra cứu đơn hàng</a></li>
+                    <li class="footer-links-item"><a href="#points" class="footer-link">Tích điểm thành viên</a></li>
+                    <li class="footer-links-item"><a href="#payment-methods" class="footer-link">Thanh toán COD & QR</a></li>
+                    <li class="footer-links-item"><a href="#privacy" class="footer-link">Chính sách bảo mật</a></li>
+                </ul>
+            </div>
+
+
+            <div class="footer-col">
+                <span class="footer-heading">KẾT NỐI VỚI CHÚNG TÔI</span>
+                <p class="footer-address">
+                    Trụ sở chính: 123 Đường Công Nghệ, Quận 1, TP. Hồ Chí Minh<br>
+                    Email: contact@quochungmobile.vn<br>
+                    Thời gian làm việc: 08:00 – 21:30 (Cả CN & ngày lễ)
+                </p>
+                <div class="footer-payment-badges">
+                    <span class="payment-badge">COD</span>
+                    <span class="payment-badge">VIETQR</span>
+                    <span class="payment-badge">NAPAS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            © 2026 QUỐC HÙNG MOBILE. TẤT CẢ CÁC QUYỀN ĐƯỢC BẢO LƯU. ĐỒ ÁN LẬP TRÌNH WEB.
+        </div>
+    </footer>
+
+    {% include 'includes/chat_launcher.html' %}
+</body>
+</html>

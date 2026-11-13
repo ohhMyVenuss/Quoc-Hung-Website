@@ -1,0 +1,607 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.name }} — Quốc Hùng Mobile</title>
+    <meta name="description" content="Chi tiết sản phẩm {{ product.name }} tại hệ thống bán lẻ Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+</head>
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/public_header.html' %}
+
+
+    <main class="qhm-pub-main" role="main">
+
+        <div class="qhm-top-nav-row" style="margin-bottom: 20px;">
+            <a href="{% url 'catalog:public_category' product.category.id %}" class="qhm-btn-back" id="btn-back-public-cat">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>Quay lại Danh mục {{ product.category.name }}</span>
+            </a>
+            <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                <a href="{% url 'home' %}">Trang chủ</a>
+                <span class="sep">/</span>
+                <a href="{% url 'catalog:public_category' product.category.id %}">{{ product.category.name }}</a>
+                <span class="sep">/</span>
+                <span class="current">{{ product.name }}</span>
+            </div>
+        </div>
+
+        {% if messages %}
+            <div class="qhm-messages-container" style="margin-bottom: 20px;">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }}" style="padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 10px; font-size: 14px; font-weight: 500; {% if message.tags == 'error' %}background-color: #fef2f2; border: 1px solid #fecaca; color: #dc2626;{% elif message.tags == 'success' %}background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #059669;{% else %}background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8;{% endif %}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+
+        <div class="qhm-detail-grid">
+
+            <div class="qhm-detail-gallery">
+                <div class="qhm-main-img-box" id="main-img-container">
+                    {% if primary_img %}
+                        <img src="{{ primary_img.image.url }}" alt="{{ product.name }}{% if selected_variant %} - {{ selected_variant.display_label }}{% endif %}" id="main-product-img">
+                    {% else %}
+                        <div id="main-img-placeholder" style="text-align: center; color: var(--gray-400);">
+                            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                            <div style="font-size: 13.5px; font-weight: 600; margin-top: 8px;">Hình ảnh đang được cập nhật</div>
+                        </div>
+                    {% endif %}
+                </div>
+
+
+                <div class="qhm-thumb-strip" id="gallery-thumbnails" role="group" aria-label="Danh sách hình ảnh thu nhỏ" style="{% if selected_gallery_images|length <= 1 %}display: none;{% endif %}">
+                    {% for img in selected_gallery_images %}
+                        <button type="button" class="qhm-thumb-btn {% if forloop.first %}active{% endif %}" data-url="{{ img.image.url }}" data-alt="{{ product.name }}{% if selected_variant %} - {{ selected_variant.display_label }}{% endif %}" aria-label="Xem ảnh {{ forloop.counter }}">
+                            <img src="{{ img.image.url }}" alt="Thumbnail {{ forloop.counter }}">
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+
+            <div class="qhm-detail-info">
+
+                <div class="qhm-detail-meta-row">
+                    <span class="qhm-badge qhm-badge-muted">
+                        {{ product.category.name }}
+                    </span>
+                    {% if product.brand %}
+                        <span class="qhm-badge qhm-badge-muted">
+                            Thương hiệu: {{ product.brand }}
+                        </span>
+                    {% endif %}
+                </div>
+
+
+                <h1 class="qhm-detail-title">
+                    {{ product.name }}
+                </h1>
+
+                {% if has_variants %}
+
+                    <div class="qhm-variant-section">
+                        <noscript>
+                            <p class="qhm-noscript-note">Trình duyệt đã tắt JavaScript. Hiển thị thông tin phiên bản mặc định.</p>
+                        </noscript>
+                        <label for="variant-select" class="qhm-field-label">Chọn phiên bản:</label>
+                        <div class="qhm-select-wrap">
+                            <select id="variant-select" class="qhm-variant-select" aria-label="Chọn phiên bản sản phẩm" disabled>
+                                {% for v in active_variants %}
+                                    <option value="{{ v.id }}" {% if v.id == selected_variant.id %}selected{% endif %}>
+                                        {{ v.display_label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <div class="qhm-price-box">
+                        <span class="qhm-price-current" id="variant-price">{{ selected_variant_data.price_formatted }}</span>
+                        <span class="qhm-price-original" id="variant-original-price" style="{% if not selected_variant_data.has_discount %}display: none;{% endif %}">
+                            {{ selected_variant_data.original_price_formatted }}
+                        </span>
+                    </div>
+
+
+                    <div class="qhm-stock-status-box" id="stock-status-box">
+                        <span class="qhm-badge {% if selected_variant_data.is_in_stock %}qhm-badge-in-stock{% else %}qhm-badge-out-of-stock{% endif %}" id="stock-badge">
+                            {% if selected_variant_data.is_in_stock %}Còn hàng{% else %}Hết hàng{% endif %}
+                        </span>
+                        <span class="qhm-stock-count-text" id="stock-count-text">
+                            {% if selected_variant_data.is_in_stock %}
+                                (Còn <strong id="stock-count">{{ selected_variant_data.available }}</strong> sản phẩm có sẵn)
+                            {% elif selected_variant_data.has_inventory %}
+                                (Tạm thời hết hàng)
+                            {% else %}
+                                (Tạm thời chưa có thông tin tồn kho)
+                            {% endif %}
+                        </span>
+                    </div>
+
+
+                    <div class="qhm-quantity-section" id="quantity-section">
+                        <label for="quantity-input" class="qhm-field-label">Số lượng:</label>
+                        <div class="qhm-quantity-controls">
+                            <button type="button" class="qhm-qty-btn" id="btn-qty-minus" aria-label="Giảm số lượng" disabled>-</button>
+                            <input type="number" id="quantity-input" name="quantity" class="qhm-qty-input"
+                                   value="{% if selected_variant_data.is_in_stock %}{{ initial_quantity|default:'1' }}{% else %}{% endif %}"
+                                   {% if selected_variant_data.is_in_stock %}min="1" max="{{ selected_variant_data.available }}"{% endif %}
+                                   step="1"
+                                   disabled
+                                   aria-label="Số lượng muốn mua">
+                            <button type="button" class="qhm-qty-btn" id="btn-qty-plus" aria-label="Tăng số lượng" disabled>+</button>
+                        </div>
+                        <div id="quantity-feedback" class="qhm-quantity-feedback" style="display: none;" role="alert"></div>
+                        <p class="qhm-snapshot-note">
+                            * Số lượng có thể thay đổi tại thời điểm đặt hàng.
+                        </p>
+                    </div>
+
+
+                    <form method="post" action="{% url 'cart:cart_add' %}" id="add-to-cart-form" style="margin-top: 16px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="variant_id" id="cart-selected-variant-id" value="{{ selected_variant.id }}">
+                        <input type="hidden" name="quantity" id="cart-selected-quantity" value="{% if selected_variant_data.is_in_stock %}{{ initial_quantity|default:'1' }}{% else %}1{% endif %}">
+                        <button type="submit" class="qhm-btn-add-cart" id="btn-add-to-cart"
+                                {% if not selected_variant_data.is_in_stock %}disabled{% endif %}
+                                aria-label="Thêm vào giỏ hàng">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                            <span id="btn-add-cart-text">{% if selected_variant_data.is_in_stock %}Thêm vào giỏ hàng{% else %}Tạm thời hết hàng{% endif %}</span>
+                        </button>
+                    </form>
+
+                {% else %}
+
+                    <div class="qhm-detail-notice-card">
+                        <div class="qhm-detail-notice-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <span>{{ customer_notice }}</span>
+                        </div>
+                        <p class="qhm-detail-notice-text">
+                            Hệ thống Quốc Hùng Mobile đang tiến hành cập nhật biểu giá chính thức cùng các phiên bản biến thể (dung lượng, màu sắc). Quý khách vui lòng quay lại sau để cập nhật bảng giá chi tiết mới nhất.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+
+        <div class="qhm-desc-card">
+            <h2 class="qhm-desc-card-title">ĐẶC ĐIỂM NỔI BẬT &amp; MÔ TẢ SẢN PHẨM</h2>
+            <div class="qhm-desc-card-content">
+                {{ product.description|default:"Hiện chưa có thông tin mô tả chi tiết cho sản phẩm này." }}
+            </div>
+        </div>
+    </main>
+
+
+    {% include 'catalog/includes/shared_footer.html' %}
+
+    {% if has_variants %}
+        {{ variants_json|json_script:"variants-data" }}
+    {% endif %}
+
+    <script>
+    function parsePositiveInt(val) {
+        if (val === null || val === undefined) return null;
+        const str = String(val).trim();
+        if (!/^[1-9]\d*$/.test(str)) {
+            return null;
+        }
+        const num = Number(str);
+        return Number.isSafeInteger(num) ? num : null;
+    }
+
+    function switchMainImage(url, alt, btn) {
+        const container = document.getElementById('main-img-container');
+        if (!container) return;
+        let mainImg = document.getElementById('main-product-img');
+        if (!mainImg) {
+            container.innerHTML = '';
+            mainImg = document.createElement('img');
+            mainImg.id = 'main-product-img';
+            container.appendChild(mainImg);
+        }
+        mainImg.src = url;
+        if (alt !== undefined && alt !== null) {
+            mainImg.alt = alt;
+        }
+        document.querySelectorAll('.qhm-thumb-btn').forEach(function(b) {
+            b.classList.remove('active');
+        });
+        if (btn) {
+            btn.classList.add('active');
+        }
+    }
+
+    function initGalleryThumbnails() {
+        const thumbStrip = document.getElementById('gallery-thumbnails');
+        if (!thumbStrip) return;
+        const initialThumbBtns = thumbStrip.querySelectorAll('.qhm-thumb-btn');
+        initialThumbBtns.forEach(function(btn) {
+            if (btn.dataset.bound === 'true') return;
+            btn.dataset.bound = 'true';
+            btn.addEventListener('click', function() {
+                const url = btn.getAttribute('data-url');
+                const alt = btn.getAttribute('data-alt');
+                switchMainImage(url, alt, btn);
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+        initGalleryThumbnails();
+
+        const scriptEl = document.getElementById('variants-data');
+        if (!scriptEl) return;
+
+        let variants = {};
+        try {
+            variants = JSON.parse(scriptEl.textContent);
+        } catch (e) {
+            console.error('Lỗi phân tích dữ liệu biến thể:', e);
+            return;
+        }
+
+        const variantSelect = document.getElementById('variant-select');
+        const priceEl = document.getElementById('variant-price');
+        const origPriceEl = document.getElementById('variant-original-price');
+        const stockBadge = document.getElementById('stock-badge');
+        const stockCountText = document.getElementById('stock-count-text');
+        const qtyInput = document.getElementById('quantity-input');
+        const btnMinus = document.getElementById('btn-qty-minus');
+        const btnPlus = document.getElementById('btn-qty-plus');
+        const feedbackEl = document.getElementById('quantity-feedback');
+        const thumbStrip = document.getElementById('gallery-thumbnails');
+        const mainContainer = document.getElementById('main-img-container');
+
+
+        if (variantSelect) {
+            variantSelect.disabled = false;
+        }
+
+        function showFeedback(msg) {
+            if (!feedbackEl) return;
+            feedbackEl.textContent = msg;
+            feedbackEl.style.display = 'block';
+        }
+
+        function hideFeedback() {
+            if (!feedbackEl) return;
+            feedbackEl.textContent = '';
+            feedbackEl.style.display = 'none';
+        }
+
+        function getCurrentVariant() {
+            if (!variantSelect) return null;
+            const id = variantSelect.value;
+            return variants[id] || null;
+        }
+
+        function updateGallery(curVar) {
+            if (!mainContainer) return;
+            const imgs = curVar && curVar.images ? curVar.images : [];
+            if (imgs.length > 0) {
+                let mainImg = document.getElementById('main-product-img');
+                if (!mainImg) {
+                    mainContainer.innerHTML = '';
+                    mainImg = document.createElement('img');
+                    mainImg.id = 'main-product-img';
+                    mainContainer.appendChild(mainImg);
+                }
+                mainImg.src = imgs[0].url;
+                mainImg.alt = imgs[0].alt;
+
+                if (thumbStrip) {
+                    thumbStrip.innerHTML = '';
+                    if (imgs.length > 1) {
+                        thumbStrip.style.display = 'flex';
+                        imgs.forEach(function(img, idx) {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'qhm-thumb-btn' + (idx === 0 ? ' active' : '');
+                            btn.setAttribute('aria-label', 'Xem ảnh ' + (idx + 1));
+                            btn.setAttribute('data-url', img.url);
+                            btn.setAttribute('data-alt', img.alt);
+                            btn.dataset.bound = 'true';
+                            const thumbImg = document.createElement('img');
+                            thumbImg.src = img.url;
+                            thumbImg.alt = 'Thumbnail ' + (idx + 1);
+                            btn.appendChild(thumbImg);
+                            btn.addEventListener('click', function() {
+                                switchMainImage(img.url, img.alt, btn);
+                            });
+                            thumbStrip.appendChild(btn);
+                        });
+                    } else {
+                        thumbStrip.style.display = 'none';
+                    }
+                }
+            } else {
+                mainContainer.innerHTML = `
+                    <div id="main-img-placeholder" style="text-align: center; color: var(--gray-400);">
+                        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <div style="font-size: 13.5px; font-weight: 600; margin-top: 8px;">Hình ảnh đang được cập nhật</div>
+                    </div>
+                `;
+                if (thumbStrip) {
+                    thumbStrip.innerHTML = '';
+                    thumbStrip.style.display = 'none';
+                }
+            }
+        }
+
+
+        const initialVar = getCurrentVariant();
+        if (initialVar && initialVar.is_in_stock) {
+            if (qtyInput) {
+                qtyInput.disabled = false;
+                qtyInput.min = '1';
+                qtyInput.max = initialVar.available.toString();
+                const existingVal = parsePositiveInt(qtyInput.value);
+                if (existingVal !== null && existingVal >= 1) {
+                    qtyInput.value = existingVal.toString();
+                } else {
+                    qtyInput.value = '1';
+                }
+                const cartQtyInput = document.getElementById('cart-selected-quantity');
+                if (cartQtyInput) {
+                    cartQtyInput.value = qtyInput.value;
+                }
+            }
+            if (btnMinus) btnMinus.disabled = false;
+            if (btnPlus) btnPlus.disabled = false;
+        } else {
+            if (qtyInput) {
+                qtyInput.value = '';
+                qtyInput.removeAttribute('min');
+                qtyInput.removeAttribute('max');
+                qtyInput.disabled = true;
+            }
+            if (btnMinus) btnMinus.disabled = true;
+            if (btnPlus) btnPlus.disabled = true;
+        }
+
+        function onVariantChange() {
+            const curVar = getCurrentVariant();
+            if (!curVar) return;
+
+
+            if (priceEl) {
+                priceEl.textContent = curVar.price_formatted;
+            }
+            if (origPriceEl) {
+                if (curVar.has_discount) {
+                    origPriceEl.textContent = curVar.original_price_formatted;
+                    origPriceEl.style.display = 'inline-block';
+                } else {
+                    origPriceEl.textContent = '';
+                    origPriceEl.style.display = 'none';
+                }
+            }
+
+
+            if (stockBadge) {
+                stockBadge.className = 'qhm-badge ' + (curVar.is_in_stock ? 'qhm-badge-in-stock' : 'qhm-badge-out-of-stock');
+                stockBadge.textContent = curVar.is_in_stock ? 'Còn hàng' : 'Hết hàng';
+            }
+            if (stockCountText) {
+                if (curVar.is_in_stock) {
+                    stockCountText.innerHTML = '(Còn <strong id="stock-count">' + curVar.available + '</strong> sản phẩm có sẵn)';
+                } else if (curVar.has_inventory) {
+                    stockCountText.textContent = '(Tạm thời hết hàng)';
+                } else {
+                    stockCountText.textContent = '(Tạm thời chưa có thông tin tồn kho)';
+                }
+            }
+
+
+            if (qtyInput) {
+                if (curVar.is_in_stock) {
+                    qtyInput.disabled = false;
+                    qtyInput.min = '1';
+                    qtyInput.max = curVar.available.toString();
+                    if (btnMinus) btnMinus.disabled = false;
+                    if (btnPlus) btnPlus.disabled = false;
+
+                    const prevQty = parsePositiveInt(qtyInput.value);
+                    if (prevQty === null || prevQty < 1) {
+                        qtyInput.value = '1';
+                        hideFeedback();
+                    } else if (prevQty > curVar.available) {
+                        qtyInput.value = curVar.available.toString();
+                        showFeedback('Số lượng đã được điều chỉnh về ' + curVar.available + ' theo tồn kho phiên bản mới.');
+                    } else {
+                        qtyInput.value = prevQty.toString();
+                        hideFeedback();
+                    }
+                    qtyInput.classList.remove('is-invalid');
+                } else {
+                    qtyInput.value = '';
+                    qtyInput.removeAttribute('min');
+                    qtyInput.removeAttribute('max');
+                    qtyInput.disabled = true;
+                    if (btnMinus) btnMinus.disabled = true;
+                    if (btnPlus) btnPlus.disabled = true;
+                    hideFeedback();
+                    qtyInput.classList.remove('is-invalid');
+                }
+            }
+
+
+            updateGallery(curVar);
+
+
+            const cartVariantInput = document.getElementById('cart-selected-variant-id');
+            if (cartVariantInput) {
+                cartVariantInput.value = curVar.id;
+            }
+            const btnAddCart = document.getElementById('btn-add-to-cart');
+            const btnAddCartText = document.getElementById('btn-add-cart-text');
+            if (btnAddCart) {
+                if (curVar.is_in_stock) {
+                    btnAddCart.disabled = false;
+                    if (btnAddCartText) btnAddCartText.textContent = 'Thêm vào giỏ hàng';
+                } else {
+                    btnAddCart.disabled = true;
+                    if (btnAddCartText) btnAddCartText.textContent = 'Tạm thời hết hàng';
+                }
+            }
+        }
+
+        if (variantSelect) {
+            variantSelect.addEventListener('change', onVariantChange);
+        }
+
+
+        if (btnMinus && qtyInput) {
+            btnMinus.addEventListener('click', function() {
+                const curVar = getCurrentVariant();
+                if (!curVar || !curVar.is_in_stock) return;
+                let val = parsePositiveInt(qtyInput.value);
+                if (val === null || val <= 1) {
+                    qtyInput.value = '1';
+                    showFeedback('Số lượng tối thiểu là 1.');
+                } else {
+                    qtyInput.value = (val - 1).toString();
+                    hideFeedback();
+                }
+                qtyInput.classList.remove('is-invalid');
+            });
+        }
+
+
+        if (btnPlus && qtyInput) {
+            btnPlus.addEventListener('click', function() {
+                const curVar = getCurrentVariant();
+                if (!curVar || !curVar.is_in_stock) return;
+                let val = parsePositiveInt(qtyInput.value);
+                if (val === null || val < 1) {
+                    qtyInput.value = '1';
+                    hideFeedback();
+                } else if (val >= curVar.available) {
+                    qtyInput.value = curVar.available.toString();
+                    showFeedback('Đã đạt số lượng có sẵn tối đa (' + curVar.available + ').');
+                } else {
+                    qtyInput.value = (val + 1).toString();
+                    hideFeedback();
+                }
+                qtyInput.classList.remove('is-invalid');
+            });
+        }
+
+
+        if (qtyInput) {
+            qtyInput.addEventListener('input', function() {
+                const curVar = getCurrentVariant();
+                if (!curVar || !curVar.is_in_stock) return;
+                const raw = qtyInput.value.trim();
+                if (raw === '') {
+                    showFeedback('Vui lòng nhập số lượng.');
+                    qtyInput.classList.add('is-invalid');
+                    return;
+                }
+                const n = parsePositiveInt(raw);
+                if (n === null) {
+                    showFeedback('Số lượng phải là số nguyên dương.');
+                    qtyInput.classList.add('is-invalid');
+                    return;
+                }
+                if (n > curVar.available) {
+                    showFeedback('Số lượng vượt quá số lượng có sẵn (' + curVar.available + ').');
+                    qtyInput.classList.add('is-invalid');
+                    return;
+                }
+                hideFeedback();
+                qtyInput.classList.remove('is-invalid');
+            });
+
+            function sanitizeQuantityOnEnd() {
+                const curVar = getCurrentVariant();
+                if (!curVar || !curVar.is_in_stock) return;
+                const raw = qtyInput.value.trim();
+                const n = parsePositiveInt(raw);
+                if (n === null) {
+                    qtyInput.value = '1';
+                    hideFeedback();
+                    qtyInput.classList.remove('is-invalid');
+                } else if (n > curVar.available) {
+                    qtyInput.value = curVar.available.toString();
+                    showFeedback('Đã tự động điều chỉnh về số lượng tối đa có sẵn (' + curVar.available + ').');
+                    qtyInput.classList.remove('is-invalid');
+                } else {
+                    qtyInput.value = n.toString();
+                    hideFeedback();
+                    qtyInput.classList.remove('is-invalid');
+                }
+            }
+
+            qtyInput.addEventListener('change', sanitizeQuantityOnEnd);
+            qtyInput.addEventListener('blur', sanitizeQuantityOnEnd);
+        }
+
+
+        const addCartForm = document.getElementById('add-to-cart-form');
+        if (addCartForm) {
+            addCartForm.addEventListener('submit', function(e) {
+                const curVar = getCurrentVariant();
+                if (!curVar || !curVar.is_in_stock) {
+                    e.preventDefault();
+                    return;
+                }
+                const cartVariantInput = document.getElementById('cart-selected-variant-id');
+                if (cartVariantInput) {
+                    cartVariantInput.value = curVar.id;
+                }
+                const cartQtyInput = document.getElementById('cart-selected-quantity');
+                if (cartQtyInput && qtyInput) {
+                    const rawVal = qtyInput.value.trim();
+                    const n = parsePositiveInt(rawVal);
+                    if (n === null || n < 1) {
+                        e.preventDefault();
+                        showFeedback('Vui lòng chọn số lượng hợp lệ lớn hơn 0.');
+                        qtyInput.focus();
+                        return;
+                    }
+                    if (n > curVar.available) {
+                        e.preventDefault();
+                        showFeedback('Số lượng vượt quá số lượng có sẵn (' + curVar.available + ').');
+                        qtyInput.focus();
+                        return;
+                    }
+                    cartQtyInput.value = n.toString();
+                }
+            });
+        }
+    });
+    </script>
+</body>
+</html>

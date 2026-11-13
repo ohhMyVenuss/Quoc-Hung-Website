@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý danh mục sản phẩm — Quốc Hùng Mobile</title>
+    <meta name="description" content="Danh sách danh mục thiết bị và phụ kiện thuộc hệ thống Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+</head>
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge="QUẢN LÝ DANH MỤC" %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav='catalog_categories' %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container">
+
+                <div class="qhm-top-nav-row">
+                    <a href="{% url 'accounts:landing' %}" class="qhm-btn-back" id="btn-back-landing">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Về Cổng tài khoản</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <span>Quản lý Danh mục</span>
+                        <span class="sep">/</span>
+                        <span class="current">Danh sách danh mục sản phẩm</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row">
+                    <h1 class="qhm-mgmt-title">QUẢN LÝ DANH MỤC SẢN PHẨM</h1>
+                    <a href="{% url 'catalog:category_create' %}" class="qhm-btn-primary" id="btn-create-category">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Thêm danh mục mới</span>
+                    </a>
+                </div>
+
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="qhm-alert qhm-alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                {% if message.tags == 'error' %}
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                {% else %}
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                {% endif %}
+                            </svg>
+                            <div>{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+
+                <div class="qhm-card">
+                    <div class="qhm-table-responsive">
+                        <table class="qhm-table" id="categories-table">
+                            <thead>
+                                <tr>
+                                    <th class="qhm-col-stt">STT</th>
+                                    <th>TÊN DANH MỤC</th>
+                                    <th>MÔ TẢ DANH MỤC</th>
+                                    <th style="text-align: center; width: 160px;">TRẠNG THÁI</th>
+                                    <th style="text-align: right; width: 200px;">THAO TÁC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cat in categories %}
+                                    <tr id="category-row-{{ cat.id }}">
+                                        <td class="qhm-col-stt">{{ forloop.counter }}</td>
+                                        <td>
+                                            <span class="qhm-item-name-bold">{{ cat.name }}</span>
+                                        </td>
+                                        <td style="color: var(--gray-600); max-width: 320px;">
+                                            {{ cat.description|default:"—" }}
+                                        </td>
+                                        <td style="text-align: center;">
+                                            {% if cat.is_visible %}
+                                                <span class="qhm-badge qhm-badge-success">
+                                                    <span class="qhm-badge-dot"></span>
+                                                    Hiển thị công khai
+                                                </span>
+                                            {% else %}
+                                                <span class="qhm-badge qhm-badge-danger">
+                                                    <span class="qhm-badge-dot"></span>
+                                                    Ẩn tạm thời
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <div class="qhm-action-group">
+
+                                                <a href="{% url 'catalog:category_edit' cat.id %}" class="qhm-btn-table-outline-blue" id="btn-edit-cat-{{ cat.id }}">
+                                                    Sửa
+                                                </a>
+
+                                                <form method="post" action="{% url 'catalog:category_toggle_visibility' cat.id %}" style="margin: 0; display: inline;" onsubmit="return confirm('{% if cat.is_visible %}Bạn có chắc muốn ẩn danh mục này? Việc ẩn danh mục sẽ ẩn toàn bộ sản phẩm thuộc danh mục khỏi khách hàng.{% else %}Bạn có chắc muốn kích hoạt hiển thị lại danh mục này cho khách hàng?{% endif %}');">
+                                                    {% csrf_token %}
+                                                    {% if cat.is_visible %}
+                                                        <input type="hidden" name="action" value="hide">
+                                                        <button type="submit" class="qhm-btn-table-outline-blue" id="btn-toggle-cat-{{ cat.id }}" title="Ẩn danh mục khỏi website khách">
+                                                            Ẩn / Hiện
+                                                        </button>
+                                                    {% else %}
+                                                        <input type="hidden" name="action" value="show">
+                                                        <button type="submit" class="qhm-btn-table-outline-blue" id="btn-toggle-cat-{{ cat.id }}" title="Kích hoạt hiển thị cho khách hàng">
+                                                            Ẩn / Hiện
+                                                        </button>
+                                                    {% endif %}
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; padding: 48px 20px; color: var(--gray-500);">
+                                            <p style="font-size: 15px; font-weight: 600; margin: 0 0 6px 0;">Chưa có danh mục sản phẩm nào trong hệ thống</p>
+                                            <p style="font-size: 13px; margin: 0;">Bấm "Thêm danh mục mới" ở góc trên bên phải để tạo danh mục đầu tiên.</p>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    <div class="qhm-table-footer">
+                        <span>Hiển thị 1 - {{ categories|length }} trong tổng số {{ categories|length }} danh mục</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    {% include 'catalog/includes/shared_footer.html' %}
+
+</body>
+</html>

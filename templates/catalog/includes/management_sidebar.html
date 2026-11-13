@@ -1,0 +1,277 @@
+{% load static %}
+
+<div class="qhm-sidebar-backdrop" id="qhm-sidebar-backdrop" onclick="toggleQhmSidebar(false)" aria-hidden="true"></div>
+
+
+<aside class="qhm-mgmt-sidebar" id="qhm-mgmt-sidebar" aria-label="Menu quản trị hệ thống">
+
+    <div class="qhm-sidebar-mobile-header">
+        <span class="qhm-sidebar-mobile-title">Menu Quản trị</span>
+        <button type="button" class="qhm-sidebar-close-btn" id="qhm-sidebar-close" aria-label="Đóng menu quản trị"
+            onclick="toggleQhmSidebar(false)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    </div>
+    <ul class="qhm-sidebar-nav">
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'accounts:landing' %}"
+                class="qhm-sidebar-link {% if active_nav == 'landing' %}active{% endif %}" id="side-nav-landing">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>Tổng quan Cổng tài khoản</span>
+            </a>
+        </li>
+
+        {% if is_sales_staff %}
+        <li class="qhm-sidebar-section-title">Phân hệ Catalog</li>
+
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'catalog:category_list' %}"
+                class="qhm-sidebar-link {% if active_nav == 'catalog_categories' %}active{% endif %}"
+                id="side-nav-categories">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+                <span>Quản lý Danh mục</span>
+            </a>
+        </li>
+
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'catalog:product_list' %}"
+                class="qhm-sidebar-link {% if active_nav == 'catalog_products' %}active{% endif %}"
+                id="side-nav-products">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                <span>Quản lý Sản phẩm</span>
+            </a>
+        </li>
+
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'catalog:attribute_list' %}"
+                class="qhm-sidebar-link {% if active_nav == 'catalog_attributes' %}active{% endif %}"
+                id="side-nav-attributes">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
+                <span>Thuộc tính sản phẩm</span>
+            </a>
+        </li>
+
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'payments:verification_list' %}"
+                class="qhm-sidebar-link {% if active_nav == 'payment_verification' %}active{% endif %}"
+                id="side-nav-payment-verification">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                    <line x1="2" y1="10" x2="22" y2="10"></line>
+                </svg>
+                <span>Xác minh thanh toán QR</span>
+            </a>
+        </li>
+
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'payments:reconciliation_list' %}"
+                class="qhm-sidebar-link {% if active_nav == 'payment_reconciliation' %}active{% endif %}"
+                id="side-nav-payment-reconciliation">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span>Hồ sơ đối soát QR</span>
+            </a>
+        </li>
+
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'orders:pending_orders_list' %}"
+                class="qhm-sidebar-link {% if active_nav == 'order_pending_confirmation' %}active{% endif %}"
+                id="side-nav-pending-orders">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                    <path d="M9 14l2 2 4-4"></path>
+                </svg>
+                <span>Xác nhận đơn hàng</span>
+            </a>
+        </li>
+
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'chat:staff_inbox' %}"
+                class="qhm-sidebar-link {% if active_nav == 'chat_staff' %}active{% endif %}"
+                id="side-nav-chat-staff">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>Hộp thư Chat khách</span>
+            </a>
+        </li>
+        {% endif %}
+
+        {% if is_inventory_staff %}
+        <li class="qhm-sidebar-section-title">Phân hệ Kho hàng</li>
+
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'inventory:inventory_list' %}"
+                class="qhm-sidebar-link {% if active_nav == 'inventory_list' %}active{% endif %}"
+                id="side-nav-inventory">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path
+                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                    </path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                <span>Quản lý Tồn kho</span>
+            </a>
+        </li>
+
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'inventory:inventory_history' %}"
+                class="qhm-sidebar-link {% if active_nav == 'inventory_history' %}active{% endif %}"
+                id="side-nav-inventory-history">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span>Lịch sử biến động kho</span>
+            </a>
+        </li>
+        {% endif %}
+
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'catalog:public_catalog' %}" class="qhm-sidebar-link" id="side-nav-public-store">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path
+                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                    </path>
+                </svg>
+                <span>Xem Website (Khách)</span>
+            </a>
+        </li>
+
+        {% if is_admin %}
+        <li class="qhm-sidebar-section-title">Hệ thống Quản trị</li>
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'accounts:staff_list' %}"
+                class="qhm-sidebar-link {% if active_nav == 'staff' %}active{% endif %}" id="side-nav-staff">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Quản lý Nhân viên</span>
+            </a>
+        </li>
+
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'coupons:coupon_list' %}"
+                class="qhm-sidebar-link {% if active_nav == 'coupons' %}active{% endif %}" id="side-nav-coupons">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
+                <span>Quản lý Voucher</span>
+            </a>
+        </li>
+        {% endif %}
+
+        {% if can_access_django_admin %}
+
+        <li class="qhm-sidebar-item">
+            <a href="{% url 'admin:index' %}" class="qhm-sidebar-link" target="_blank" rel="noopener"
+                id="side-nav-django-admin">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span>Trang quản trị (Admin) ↗</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</aside>
+
+<script>
+    function toggleQhmSidebar(forceState) {
+        const sidebar = document.getElementById('qhm-mgmt-sidebar');
+        const backdrop = document.getElementById('qhm-sidebar-backdrop');
+        const toggleBtn = document.getElementById('qhm-sidebar-toggle');
+        if (!sidebar || !backdrop) return;
+
+        const isOpen = typeof forceState === 'boolean' ? forceState : !sidebar.classList.contains('open');
+        if (isOpen) {
+            sidebar.classList.add('open');
+            backdrop.classList.add('open');
+            if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+            const closeBtn = document.getElementById('qhm-sidebar-close');
+            if (closeBtn) setTimeout(() => closeBtn.focus(), 50);
+        } else {
+            sidebar.classList.remove('open');
+            backdrop.classList.remove('open');
+            if (toggleBtn) {
+                toggleBtn.setAttribute('aria-expanded', 'false');
+                toggleBtn.focus();
+            }
+        }
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            const sidebar = document.getElementById('qhm-mgmt-sidebar');
+            if (sidebar && sidebar.classList.contains('open')) {
+                toggleQhmSidebar(false);
+            }
+        }
+    });
+</script>

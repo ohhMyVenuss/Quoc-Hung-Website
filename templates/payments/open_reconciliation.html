@@ -1,0 +1,192 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|default:"Mở hồ sơ đối soát — Quốc Hùng Mobile" }}</title>
+    <meta name="description" content="Mở hồ sơ đối soát cho các trường hợp ngoại lệ chuyển khoản QR (Task 09.5).">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+    <link rel="stylesheet" href="{% static 'css/orders.css' %}">
+</head>
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge="ĐỐI SOÁT" %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav='payment_reconciliation' %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container" style="max-width: 960px; margin: 0 auto; padding: 24px 16px;">
+
+
+                <div class="qhm-top-nav-row" style="margin-bottom: 20px;">
+                    <a href="{% url 'payments:verify_payment' payment.pk %}" class="qhm-btn-back" id="btn-back-verify">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Về Trang đối soát thanh toán #{{ payment.pk }}</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <a href="{% url 'payments:verification_list' %}" style="color: inherit; text-decoration: none;">Thanh toán QR</a>
+                        <span class="sep">/</span>
+                        <a href="{% url 'payments:verify_payment' payment.pk %}" style="color: inherit; text-decoration: none;">Đơn #{{ order.order_code }}</a>
+                        <span class="sep">/</span>
+                        <span class="current">Mở hồ sơ đối soát</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row" style="margin-bottom: 24px;">
+                    <h1 class="qhm-mgmt-title" style="margin: 0; font-size: 22px; font-weight: 700; color: var(--navy-900);">
+                        MỞ HỒ SƠ ĐỐI SOÁT THANH TOÁN QR #{{ payment.pk }}
+                    </h1>
+                    <p style="margin: 6px 0 0; font-size: 13.5px; color: var(--gray-600);">
+                        Đơn hàng <strong>#{{ order.order_code }}</strong> — Khách hàng: <strong>{{ order.recipient_name }}</strong> ({{ order.recipient_phone }})
+                    </p>
+                </div>
+
+
+                {% if messages %}
+                <div class="qhm-messages-container" style="margin-bottom: 20px;" id="msg-container">
+                    {% for message in messages %}
+                        <div class="qhm-alert qhm-alert-{{ message.tags|default:'info' }}" role="alert" style="padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; font-size: 13.5px; background-color: {% if message.tags == 'success' %}#ecfdf5; border: 1px solid #a7f3d0; color: #065f46;{% elif message.tags == 'error' %}#fef2f2; border: 1px solid #fecaca; color: #991b1b;{% else %}#eff6ff; border: 1px solid #bfdbfe; color: #1e40af;{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+
+                {% if active_case %}
+                <div class="qhm-alert" role="alert" style="background-color: #fef3c7; border: 1px solid #fde68a; color: #92400e; padding: 16px; border-radius: 8px; margin-bottom: 20px;" id="alert-case-already-open">
+                    <strong style="display: block; font-size: 14px; margin-bottom: 4px;">Đơn hàng này hiện đang có hồ sơ đối soát chưa giải quyết:</strong>
+                    <div>
+                        Hồ sơ <strong>#{{ active_case.pk }}</strong> — Trạng thái: <strong>{{ active_case.get_status_display }}</strong> — Lý do: <strong>{{ active_case.get_reason_code_display }}</strong> (Mở lúc: {{ active_case.created_at|date:"H:i:s d/m/Y" }} bởi {{ active_case.handled_by.username|default:"Hệ thống" }}).
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <a href="{% url 'payments:reconciliation_detail' active_case.pk %}" class="qhm-btn-primary" style="padding: 6px 14px; font-size: 13px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                            Xem hồ sơ đối soát hiện có »
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; align-items: start;">
+
+
+                    <div class="qhm-info-card" style="background: white; border: 1px solid var(--gray-200); border-radius: 10px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" id="card-order-summary">
+                        <h2 style="margin: 0 0 16px; font-size: 15px; font-weight: 700; color: var(--navy-900); border-bottom: 1px solid var(--gray-100); padding-bottom: 10px;">
+                            THÔNG TIN ĐƠN HÀNG & THANH TOÁN
+                        </h2>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+                            <tbody>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 8px 0; color: var(--gray-600); width: 45%;">Mã đơn hàng:</td>
+                                    <td style="padding: 8px 0; font-weight: 700; color: var(--navy-900);">#{{ order.order_code }}</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 8px 0; color: var(--gray-600);">Trạng thái đơn:</td>
+                                    <td style="padding: 8px 0; font-weight: 600;">{{ order.get_order_status_display }}</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 8px 0; color: var(--gray-600);">Số tiền cần TT:</td>
+                                    <td style="padding: 8px 0; font-size: 15px; font-weight: 700; color: var(--blue-600);">{{ payment.expected_amount_formatted }}</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 8px 0; color: var(--gray-600);">Mã tham chiếu QR:</td>
+                                    <td style="padding: 8px 0;"><code style="background: #e0f2fe; color: #0369a1; padding: 3px 6px; border-radius: 4px; font-weight: 700;">{{ payment.qr_reference|default:order.order_code }}</code></td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 8px 0; color: var(--gray-600);">Trạng thái thanh toán:</td>
+                                    <td style="padding: 8px 0; font-weight: 600;">{{ payment.get_status_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; color: var(--gray-600);">Thời điểm tạo đơn:</td>
+                                    <td style="padding: 8px 0;">{{ order.created_at|date:"H:i:s d/m/Y" }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    <div class="qhm-form-card" style="background: white; border: 1px solid var(--gray-200); border-radius: 10px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" id="card-open-reconciliation">
+                        <h2 style="margin: 0 0 16px; font-size: 15px; font-weight: 700; color: var(--navy-900); border-bottom: 1px solid var(--gray-100); padding-bottom: 10px;">
+                            THÔNG TIN HỒ SƠ ĐỐI SOÁT MỚI
+                        </h2>
+
+
+                        {% if form.errors %}
+                        <div class="qhm-alert" role="alert" style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 18px;" id="form-errors-box">
+                            <strong style="display: block; margin-bottom: 4px;">Dữ liệu biểu mẫu không hợp lệ:</strong>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <form method="post" action="" novalidate id="form-open-reconciliation">
+                            {% csrf_token %}
+
+                            <div class="qhm-form-group" style="margin-bottom: 18px;">
+                                <label for="id_reason_code" style="display: block; font-weight: 600; font-size: 13.5px; color: var(--navy-900); margin-bottom: 6px;">
+                                    Lý do đối soát ngoại lệ <span style="color: #dc2626;">*</span>
+                                </label>
+                                {{ form.reason_code }}
+                                <span style="display: block; font-size: 12px; color: var(--gray-500); margin-top: 4px;">
+                                    Bắt buộc chọn nguyên nhân thực tế phát sinh ngoại lệ cần đối soát.
+                                </span>
+                            </div>
+
+                            <div class="qhm-form-group" style="margin-bottom: 20px;">
+                                <label for="id_notes" style="display: block; font-weight: 600; font-size: 13.5px; color: var(--navy-900); margin-bottom: 6px;">
+                                    Ghi chú chi tiết (Tùy chọn)
+                                </label>
+                                {{ form.notes }}
+                                <span style="display: block; font-size: 12px; color: var(--gray-500); margin-top: 4px;">
+                                    Mô tả số tiền sai lệch, thông tin sao kê quan sát được hoặc lưu ý đối soát.
+                                </span>
+                            </div>
+
+                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 20px; font-size: 12.5px; color: var(--gray-600); line-height: 1.5;">
+                                <strong>Chính sách đối soát & Cam kết SLA (BR-PAY-06..08, BR-PAY-UX):</strong>
+                                <ul style="margin: 6px 0 0; padding-left: 18px;">
+                                    <li>Chuyển đơn hàng sang <em>Chờ đối soát (PENDING_RECONCILIATION)</em> nếu đơn đang ở trạng thái chờ.</li>
+                                    <li>Đơn đã hủy hoặc hết hạn giữ nguyên trạng thái kết thúc, không tự động phục hồi.</li>
+                                    <li>Bảo toàn nguyên vẹn giữ chỗ tồn kho và voucher; không tự động hủy đơn hay hoàn tiền.</li>
+                                </ul>
+                                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #cbd5e1;" id="sla-calendar-status-notice">
+                                    {% if sla_preview %}
+                                        <strong style="color: #0369a1;">⏱️ Cam kết SLA:</strong> Dự kiến hạn xử lý là <strong>{{ sla_preview|date:"H:i:s d/m/Y" }}</strong> (12 giờ làm việc).
+                                    {% else %}
+                                        <strong style="color: #64748b;">ℹ️ Cam kết SLA:</strong> Lịch làm việc cửa hàng chưa kích hoạt — Hạn chót SLA hiện để trống. Hồ sơ vẫn được mở và theo dõi bình thường.
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <button type="submit" class="qhm-btn-primary" style="width: 100%; padding: 12px 20px; font-size: 14px; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" id="btn-submit-open-reconciliation">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                                Xác nhận Mở hồ sơ đối soát
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

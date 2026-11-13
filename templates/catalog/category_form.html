@@ -1,0 +1,167 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} — Quốc Hùng Mobile</title>
+    <meta name="description" content="{{ title }} trong hệ thống bán hàng Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+</head>
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge="QUẢN LÝ DANH MỤC" %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav='catalog_categories' %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container">
+
+                <div class="qhm-top-nav-row">
+                    <a href="{% url 'catalog:category_list' %}" class="qhm-btn-back" id="btn-back-categories">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Quay lại Danh mục</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <a href="{% url 'catalog:category_list' %}">Quản lý Danh mục</a>
+                        <span class="sep">/</span>
+                        <span class="current">{{ title }}</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row">
+                    <h1 class="qhm-mgmt-title">{{ title|upper }}</h1>
+                </div>
+
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="qhm-alert qhm-alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+                            <div>{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if form.non_field_errors %}
+                    <div class="qhm-alert qhm-alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+
+                <div class="qhm-form-card">
+                    <div class="qhm-form-header">
+                        <h2>THÔNG TIN CẤU HÌNH DANH MỤC</h2>
+                        <p>Cung cấp tên và cấu hình hiển thị cho danh mục thiết bị hoặc phụ kiện</p>
+                    </div>
+
+                    <form method="post" novalidate id="category-form">
+                        {% csrf_token %}
+
+
+                        <div class="qhm-form-group">
+                            <div class="qhm-form-label-row">
+                                <label for="{{ form.name.id_for_label }}" class="qhm-form-label">
+                                    Tên danh mục sản phẩm: <span class="qhm-form-req">* (Bắt buộc)</span>
+                                </label>
+                                <span class="qhm-char-counter" id="name-counter">0 / 100 ký tự</span>
+                            </div>
+                            <input type="text" name="name" id="{{ form.name.id_for_label }}" value="{{ form.name.value|default:'' }}" class="qhm-form-control" maxlength="100" placeholder="Ví dụ: Điện thoại thông minh, Laptop & Máy trạm..." required autocomplete="off" oninput="updateNameCounter(this)">
+                            <div class="qhm-form-help">
+                                Tên danh mục phải là duy nhất. Hệ thống tự động chuẩn hóa khoảng trắng thừa và kiểm tra không phân biệt chữ hoa/thường tiếng Việt.
+                            </div>
+                            {% if form.name.errors %}
+                                <div class="qhm-form-error" id="name-error">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                    <span>{% for err in form.name.errors %}{{ err }}{% endfor %}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+                        <div class="qhm-form-group">
+                            <div class="qhm-form-label-row">
+                                <label for="{{ form.description.id_for_label }}" class="qhm-form-label">
+                                    Mô tả danh mục (Tùy chọn):
+                                </label>
+                            </div>
+                            <textarea name="description" id="{{ form.description.id_for_label }}" class="qhm-form-control" rows="4" placeholder="Mô tả tóm tắt đặc điểm và nhóm sản phẩm thuộc danh mục này...">{{ form.description.value|default:'' }}</textarea>
+                            <div class="qhm-form-help">
+                                Thông tin mô tả được hiển thị tại thanh điều hướng và trang mua sắm khách hàng.
+                            </div>
+                            {% if form.description.errors %}
+                                <div class="qhm-form-error">
+                                    {% for err in form.description.errors %}{{ err }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+                        <div class="qhm-form-group">
+                            <label class="qhm-form-label" style="margin-bottom: 8px;">
+                                Trạng thái hiển thị ngoài website: <span class="qhm-form-req">*</span>
+                            </label>
+                            <div class="qhm-radio-group">
+                                <label class="qhm-radio-label">
+                                    <input type="radio" name="is_visible" value="True" {% if form.is_visible.value %}checked{% endif %} id="radio-visible-true">
+                                    <span>Hiển thị công khai (Khách hàng có thể xem và lọc sản phẩm)</span>
+                                </label>
+                                <label class="qhm-radio-label">
+                                    <input type="radio" name="is_visible" value="False" {% if not form.is_visible.value %}checked{% endif %} id="radio-visible-false">
+                                    <span>Ẩn danh mục (Tạm ngưng hiển thị trên thanh menu)</span>
+                                </label>
+                            </div>
+                            {% if form.is_visible.errors %}
+                                <div class="qhm-form-error">
+                                    {% for err in form.is_visible.errors %}{{ err }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+                        <div class="qhm-form-actions-row">
+                            <a href="{% url 'catalog:category_list' %}" class="qhm-btn-secondary" id="btn-cancel-cat">
+                                Hủy bỏ quay lại
+                            </a>
+                            <button type="submit" class="qhm-btn-primary" id="btn-save-category">
+                                LƯU DANH MỤC
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    {% include 'catalog/includes/shared_footer.html' %}
+
+    <script>
+    function updateNameCounter(input) {
+        const counter = document.getElementById('name-counter');
+        if (counter && input) {
+            counter.textContent = `${input.value.length} / 100 ký tự`;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('{{ form.name.id_for_label }}');
+        if (input) {
+            updateNameCounter(input);
+        }
+    });
+    </script>
+</body>
+</html>

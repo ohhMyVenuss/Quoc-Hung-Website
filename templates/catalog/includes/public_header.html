@@ -1,0 +1,88 @@
+{% load static %}
+<header class="qhm-pub-header" role="banner">
+    <div class="qhm-pub-header-top">
+
+        <a href="{% url 'home' %}" class="qhm-pub-logo" title="Quốc Hùng Mobile — Trang chủ" id="public-header-logo">
+            <div class="qhm-brand-icon-h" aria-hidden="true">H</div>
+            <div class="qhm-brand-title" style="color: var(--navy-900);">QUỐC HÙNG MOBILE</div>
+        </a>
+
+
+        <div class="qhm-pub-search-wrap">
+            <form method="get" action="{% url 'catalog:public_catalog' %}" id="public-search-form" style="margin: 0;">
+                {% if selected_category and active_nav == 'public_catalog' %}
+                    <input type="hidden" name="category" value="{{ selected_category.id }}">
+                {% endif %}
+                <input type="text" name="q" value="{{ search_query|default:'' }}" class="qhm-pub-search-input" placeholder="Tìm kiếm sản phẩm, thương hiệu..." aria-label="Tìm kiếm sản phẩm" id="public-search-input">
+                <button type="submit" class="qhm-pub-search-btn" aria-label="Tìm kiếm">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+            </form>
+        </div>
+
+
+        <div class="qhm-pub-account-bar">
+
+            {% if can_use_cart %}
+                <a href="{% url 'cart:cart_detail' %}" class="cart-widget qhm-pub-cart-widget" title="Giỏ hàng của bạn" id="public-header-cart-widget" aria-label="Giỏ hàng ({% if cart_item_count %}{{ cart_item_count }}{% else %}0{% endif %} sản phẩm)">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    {% if cart_item_count > 0 %}
+                        <span class="cart-badge" id="pub-cart-badge-count">{{ cart_item_count }}</span>
+                    {% endif %}
+                </a>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'accounts:landing' %}" class="qhm-pub-user-pill" title="Cổng tài khoản: {{ user.username }}" id="public-account-link">
+                    <div class="qhm-user-avatar-initial" aria-hidden="true">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                    <span>Chào, {{ user.get_full_name|default:user.username }}</span>
+                </a>
+                {% if is_sales_staff %}
+                    <a href="{% url 'catalog:category_list' %}" class="qhm-btn-table-outline-blue" style="font-size: 12px; padding: 5px 10px;" id="public-mgmt-link">
+                        Quản trị
+                    </a>
+                {% endif %}
+                <form method="post" action="{% url 'accounts:logout' %}" style="margin: 0; display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="qhm-btn-logout-link" title="Đăng xuất" id="public-logout-btn">
+                        <span>Đăng xuất</span>
+                    </button>
+                </form>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="qhm-pub-user-pill" title="Đăng nhập hoặc đăng ký tài khoản" id="public-login-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Đăng nhập / Đăng ký</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <nav class="qhm-pub-cat-nav" aria-label="Danh mục sản phẩm">
+        <div class="qhm-pub-cat-inner">
+            <a href="{% url 'home' %}" class="qhm-pub-cat-link {% if active_nav == 'home' %}active{% endif %}" id="nav-home">
+                TRANG CHỦ
+            </a>
+            <a href="{% url 'catalog:public_catalog' %}" class="qhm-pub-cat-link {% if active_nav == 'public_catalog' and not selected_category %}active{% endif %}" id="nav-catalog">
+                TẤT CẢ SẢN PHẨM
+            </a>
+            {% for cat in categories %}
+                <a href="{% url 'catalog:public_category' cat.id %}" class="qhm-pub-cat-link {% if selected_category.id == cat.id or product.category.id == cat.id %}active{% endif %}" id="nav-cat-{{ cat.id }}">
+                    {{ cat.name }}
+                </a>
+            {% endfor %}
+        </div>
+    </nav>
+</header>

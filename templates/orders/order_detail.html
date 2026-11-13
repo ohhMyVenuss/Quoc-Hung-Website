@@ -1,0 +1,757 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|default:"Chi tiết đơn hàng — Quốc Hùng Mobile" }}</title>
+    <meta name="description" content="Xem chi tiết đơn hàng đã đặt tại Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+    <link rel="stylesheet" href="{% static 'css/orders.css' %}">
+</head>
+
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/public_header.html' %}
+
+    <main class="qhm-orders-container" role="main">
+
+        <div class="qhm-orders-top-row">
+            <a href="{% url 'home' %}" class="qhm-orders-btn-back" id="btn-back-to-home">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>Về lại Trang chủ</span>
+            </a>
+            <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                <a href="{% url 'home' %}">Trang chủ</a>
+                <span class="sep">/</span>
+                <span class="current">Chi tiết đơn hàng #{{ order.order_code }}</span>
+            </div>
+        </div>
+
+
+        {% if messages %}
+        <div class="qhm-messages-container" style="margin-bottom: 24px;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }}"
+                style="padding: 12px 18px; border-radius: var(--radius-md); margin-bottom: 10px; font-size: 14px; font-weight: 500; {% if message.tags == 'error' %}background-color: #fef2f2; border: 1px solid #fecaca; color: #dc2626;{% elif message.tags == 'success' %}background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #059669;{% else %}background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8;{% endif %}"
+                role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+
+        <div class="qhm-order-detail-card" id="order-detail-main">
+
+            <div class="qhm-order-success-hero" {% if order.order_status == 'CANCELLED' %}style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-bottom: 2px solid #fca5a5;"{% endif %}>
+                <div class="qhm-order-success-icon" aria-hidden="true" {% if order.order_status == 'CANCELLED' %}style="background-color: #ef4444;"{% endif %}>
+                    {% if order.order_status == 'CANCELLED' %}
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    {% else %}
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    {% endif %}
+                </div>
+                <h1 class="qhm-order-success-title" id="order-success-title" {% if order.order_status == 'CANCELLED' %}style="color: #b91c1c;"{% endif %}>
+                    {% if order.order_status == 'CANCELLED' %}ĐƠN HÀNG ĐÃ HỦY{% else %}ĐẶT HÀNG THÀNH CÔNG!{% endif %}
+                </h1>
+                <p class="qhm-order-success-sub">
+                    {% if order.order_status == 'CANCELLED' %}
+                    Đơn hàng này đã được hủy trước khi xuất kho. Toàn bộ sản phẩm giữ chỗ đã được giải phóng.
+                    {% else %}
+                    Cảm ơn bạn đã mua hàng tại Quốc Hùng Mobile. Đơn hàng của bạn đã được ghi nhận vào hệ thống.
+                    {% endif %}
+                </p>
+                <div class="qhm-order-code-badge" id="order-code-display">
+                    MÃ ĐƠN HÀNG: #{{ order.order_code }}
+                </div>
+            </div>
+
+
+            <div class="qhm-order-notice-box" id="order-notice-box">
+                <div>• Hệ thống đã ghi nhận đơn hàng cho số điện thoại liên hệ <strong>{{ order.recipient_phone }}</strong>.</div>
+                {% if order.order_status == 'CANCELLED' %}
+                <div style="color: #dc2626; font-weight: 600;">
+                    • Đơn hàng đã hủy{% if cancellation %} vào lúc {{ cancellation.cancelled_at|date:"H:i:s d/m/Y" }}{% endif %}.
+                    Lý do: <strong>{{ cancellation.get_reason_code_display|default:"Đã hủy" }}</strong>{% if cancellation.description %}: <em>{{ cancellation.description }}</em>{% endif %}.
+                </div>
+                {% elif order.order_status == 'DELIVERED' %}
+                <div style="color: #059669; font-weight: 600;">• Đơn hàng đã được giao thành công{% if order.delivered_at %} vào lúc {{ order.delivered_at|date:"H:i:s d/m/Y" }}{% endif %}. Cảm ơn bạn đã tin tưởng mua sắm tại Quốc Hùng Mobile!</div>
+                {% elif order.order_status == 'SHIPPING' %}
+                <div style="color: #15803d; font-weight: 600;">• Đơn hàng đang trên đường giao đến bạn. Nhân viên giao hàng sẽ liên hệ với bạn khi hàng đến nơi.</div>
+                {% elif payment and payment.method == 'COD' %}
+                <div>• Nhân viên giao hàng sẽ liên hệ số điện thoại trên để giao hàng và thu tiền mặt tận nơi.</div>
+                {% else %}
+                <div>• Nhân viên giao hàng sẽ liên hệ số điện thoại trên trước khi giao hàng.</div>
+                {% endif %}
+            </div>
+
+
+            <div class="qhm-order-info-grid">
+
+                <div class="qhm-info-block" id="block-shipping-info">
+                    <h2 class="qhm-info-block-title">THÔNG TIN GIAO HÀNG</h2>
+                    <table class="qhm-info-table">
+                        <tbody>
+                            <tr>
+                                <td class="label-col">Người nhận:</td>
+                                <td class="value-col" id="info-recipient-name">{{ order.recipient_name }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Số điện thoại:</td>
+                                <td class="value-col" id="info-recipient-phone">{{ order.recipient_phone }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Địa chỉ:</td>
+                                <td class="value-col" id="info-shipping-address">{{ order.shipping_address }}</td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Thời gian tạo:</td>
+                                <td class="value-col" id="info-created-at">{{ order.created_at|date:"d/m/Y - H:i:s" }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Trạng thái đơn:</td>
+                                <td class="value-col" id="info-order-status">
+                                    <span class="qhm-badge {% if order.order_status == 'CONFIRMED' %}qhm-badge-confirmed{% elif order.order_status == 'SHIPPING' %}qhm-badge-shipping{% elif order.order_status == 'PENDING_CONFIRMATION' %}qhm-badge-pending{% elif order.order_status == 'DELIVERED' %}qhm-badge-paid{% elif order.order_status == 'CANCELLED' or order.order_status == 'EXPIRED' %}qhm-badge-unpaid{% else %}qhm-badge-pending{% endif %}">
+                                        {{ order.get_order_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% if order.delivered_at %}
+                            <tr>
+                                <td class="label-col">Thời gian giao:</td>
+                                <td class="value-col" id="info-delivered-at">{{ order.delivered_at|date:"d/m/Y - H:i:s" }}</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <div class="qhm-info-block" id="block-payment-info">
+                    <h2 class="qhm-info-block-title">THÔNG TIN THANH TOÁN</h2>
+                    <table class="qhm-info-table">
+                        <tbody>
+                            <tr>
+                                <td class="label-col">Phương thức:</td>
+                                <td class="value-col" id="info-payment-method">
+                                    {% if payment %}
+                                    {{ payment.get_method_display }}
+                                    {% else %}
+                                    <span class="qhm-badge qhm-badge-unavailable">Không có dữ liệu</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Tổng thanh toán:</td>
+                                <td class="value-col" id="info-grand-total"
+                                    style="color: var(--blue-600); font-size: 15px;">
+                                    <strong>{{ order.grand_total_formatted }}</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Trạng thái thanh toán:</td>
+                                <td class="value-col" id="info-payment-status">
+                                    {% if payment %}
+                                    <span
+                                        class="qhm-badge {% if payment.status == 'UNPAID' %}qhm-badge-unpaid{% elif payment.status == 'PAID' %}qhm-badge-paid{% elif payment.status == 'REFUNDED' %}qhm-badge-refunded{% elif payment.status == 'PENDING_REFUND' %}qhm-badge-pending-refund{% else %}qhm-badge-pending{% endif %}"
+                                        {% if payment.status == 'REFUNDED' %}style="background-color: #f3e8ff; color: #6b21a8; font-weight: 700; border: 1px solid #d8b4fe;"{% elif payment.status == 'PENDING_REFUND' %}style="background-color: #fef3c7; color: #92400e; font-weight: 700; border: 1px solid #fde68a;"{% endif %}>
+                                        {{ payment.get_status_display }}
+                                    </span>
+                                    {% else %}
+                                    <span class="qhm-badge qhm-badge-unavailable"
+                                        style="font-size: 11.5px; text-transform: none;">
+                                        Dữ liệu thanh toán của đơn hàng này hiện chưa sẵn sàng.
+                                    </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label-col">Ghi chú:</td>
+                                <td class="value-col"
+                                    style="font-weight: normal; font-size: 12.5px; color: var(--gray-600);">
+                                    {% if payment and payment.method == 'COD' %}
+                                    Nhân viên giao hàng sẽ thu tiền mặt khi giao hàng.
+                                    {% elif payment and payment.method == 'QR' %}
+                                    Chuyển khoản ngân hàng theo thông tin mã QR bên dưới.
+                                    {% else %}
+                                    Đơn hàng thanh toán khi nhận hàng.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {% if payment and payment.method == 'QR' %}
+
+                <div class="qhm-qr-payment-card" id="card-qr-payment-instruction">
+                    {% if order.order_status == 'PENDING_RECONCILIATION' %}
+
+                        <div class="qhm-qr-status-banner qhm-banner-review" id="qr-reconciliation-review-banner" style="background-color: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 18px 22px; border-radius: var(--radius-md); display: flex; gap: 14px; align-items: flex-start;">
+                            <div class="qhm-banner-icon" style="color: #d97706; flex-shrink: 0; margin-top: 2px;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                            </div>
+                            <div class="qhm-banner-text">
+                                <h3 class="qhm-banner-title" style="margin: 0 0 6px 0; font-size: 15px; font-weight: 700; color: #b45309;">ĐƠN HÀNG ĐANG ĐƯỢC KIỂM TRA ĐỐI SOÁT THANH TOÁN</h3>
+                                <p class="qhm-banner-desc" style="margin: 0; font-size: 13.5px; line-height: 1.5; color: #78350f;">
+                                    Đơn hàng của bạn đang được nhân viên Quốc Hùng Mobile rà soát và đối soát thông tin giao dịch chuyển khoản.
+                                    Mã QR và thông tin chuyển khoản đã tạm dừng hiển thị để bảo đảm an toàn giao dịch.
+                                    Chỗ giữ tồn kho và ưu đãi giảm giá của đơn hàng đang được bảo toàn nguyên vẹn.
+                                    Nhân viên sẽ liên hệ hoặc cập nhật trạng thái đơn ngay khi hoàn tất đối soát.
+                                </p>
+                            </div>
+                        </div>
+                    {% elif payment.status == 'PENDING_VERIFY' %}
+                        <div class="qhm-qr-status-banner qhm-banner-pending" id="qr-pending-verify-banner">
+                            <div class="qhm-banner-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 14 14"></polyline>
+                                </svg>
+                            </div>
+                            <div class="qhm-banner-text">
+                                <h3 class="qhm-banner-title">ĐÃ GHI NHẬN THÔNG BÁO CHUYỂN KHOẢN — ĐANG CHỜ XÁC MINH</h3>
+                                <p class="qhm-banner-desc">
+                                    Bạn đã bấm thông báo chuyển khoản lúc <strong>{{ payment.customer_notified_at|date:"H:i:s d/m/Y" }}</strong>.
+                                    Nhân viên Quốc Hùng Mobile sẽ kiểm tra sao kê ngân hàng và xác minh giao dịch của bạn trong giờ làm việc.
+                                    Chỗ giữ tồn kho và ưu đãi giảm giá của đơn hàng đang được bảo toàn tuyệt đối.
+                                </p>
+                            </div>
+                        </div>
+                    {% elif payment.status == 'PAID' %}
+                        <div class="qhm-qr-status-banner qhm-banner-paid" id="qr-paid-banner">
+                            <div class="qhm-banner-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </div>
+                            <div class="qhm-banner-text">
+                                <h3 class="qhm-banner-title">ĐƠN HÀNG ĐÃ THANH TOÁN THÀNH CÔNG</h3>
+                                <p class="qhm-banner-desc">
+                                    {% if order.order_status == 'DELIVERED' %}
+                                    Giao dịch chuyển khoản của bạn đã được xác nhận thanh toán. Đơn hàng đã được giao thành công đến bạn{% if order.delivered_at %} vào lúc {{ order.delivered_at|date:"H:i:s d/m/Y" }}{% endif %}.
+                                    {% elif order.order_status == 'SHIPPING' %}
+                                    Giao dịch chuyển khoản của bạn đã được xác nhận thanh toán. Đơn hàng đã được xuất kho và đang được vận chuyển đến bạn.
+                                    {% else %}
+                                    Giao dịch chuyển khoản của bạn đã được xác nhận thanh toán. Đơn hàng đang được chuẩn bị để đóng gói và giao đến bạn.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    {% elif payment.status == 'REFUNDED' %}
+                        <div class="qhm-qr-status-banner qhm-banner-refunded" id="qr-refunded-banner" style="background-color: #faf5ff; border: 1.5px solid #d8b4fe; color: #581c87; padding: 18px 22px; border-radius: var(--radius-md); display: flex; gap: 14px; align-items: flex-start;">
+                            <div class="qhm-banner-icon" style="color: #7e22ce; flex-shrink: 0; margin-top: 2px;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </div>
+                            <div class="qhm-banner-text">
+                                <h3 class="qhm-banner-title" style="margin: 0 0 6px 0; font-size: 15px; font-weight: 700; color: #6b21a8;">ĐƠN HÀNG ĐÃ ĐƯỢC HOÀN TIỀN THÀNH CÔNG</h3>
+                                <p class="qhm-banner-desc" style="margin: 0; font-size: 13.5px; line-height: 1.5; color: #4c1d95;">
+                                    Khoản thanh toán cho đơn hàng này đã được Quản trị viên hoàn trả thành công về tài khoản ngân hàng của bạn.
+                                    {% if refund %}
+                                    <br>• Số tiền đã hoàn: <strong>{{ refund.amount_formatted|default:payment.expected_amount_formatted }}</strong>
+                                    {% if refund.completed_at %}<br>• Thời gian hoàn tất: <strong>{{ refund.completed_at|date:"H:i:s d/m/Y" }}</strong>{% endif %}
+                                    {% if refund.bank_reference %}<br>• Mã giao dịch ngân hàng: <code>{{ refund.bank_reference }}</code>{% endif %}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    {% elif payment.status == 'PENDING_REFUND' %}
+                        <div class="qhm-qr-status-banner qhm-banner-pending" id="qr-pending-refund-banner" style="background-color: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 18px 22px; border-radius: var(--radius-md); display: flex; gap: 14px; align-items: flex-start;">
+                            <div class="qhm-banner-icon" style="color: #d97706; flex-shrink: 0; margin-top: 2px;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 14 14"></polyline>
+                                </svg>
+                            </div>
+                            <div class="qhm-banner-text">
+                                <h3 class="qhm-banner-title" style="margin: 0 0 6px 0; font-size: 15px; font-weight: 700; color: #b45309;">KHOẢN TIỀN ĐÃ GHI NHẬN — ĐANG CHỜ HOÀN TIỀN</h3>
+                                <p class="qhm-banner-desc" style="margin: 0; font-size: 13.5px; line-height: 1.5; color: #78350f;">
+                                    Khoản chuyển khoản của bạn đã được ghi nhận đối soát vào hệ thống. Do đơn hàng ở trạng thái kết thúc ({{ order.get_order_status_display }}), đơn hàng không thể tự động khôi phục theo quy định. Cửa hàng đang thực hiện thủ tục hoàn trả lại số tiền đã nhận cho bạn.
+                                </p>
+                            </div>
+                        </div>
+                    {% else %}
+
+                        {% if not has_recipient_snapshot %}
+
+                            <div class="qhm-qr-status-banner qhm-banner-review" id="qr-legacy-review-banner" style="background-color: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 18px 22px; border-radius: var(--radius-md); display: flex; gap: 14px; align-items: flex-start;">
+                                <div class="qhm-banner-icon" style="color: #d97706; flex-shrink: 0; margin-top: 2px;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                </div>
+                                <div class="qhm-banner-text">
+                                    <h3 class="qhm-banner-title" style="margin: 0 0 6px 0; font-size: 15px; font-weight: 700; color: #b45309;">THÔNG TIN CHUYỂN KHOẢN ĐANG ĐƯỢC KIỂM TRA ĐỐI SOÁT</h3>
+                                    <p class="qhm-banner-desc" style="margin: 0; font-size: 13.5px; line-height: 1.5; color: #78350f;">
+                                        Đơn hàng này chưa có snapshot thông tin tài khoản thụ hưởng cố định.
+                                        Mã QR và thông tin chuyển khoản chủ động đã tạm dừng hiển thị để bảo đảm an toàn giao dịch.
+                                        Vui lòng liên hệ nhân viên Quốc Hùng Mobile để được hỗ trợ và đối soát trực tiếp.
+                                        Chỗ giữ tồn kho và thông tin đơn hàng của bạn vẫn được bảo toàn nguyên vẹn.
+                                    </p>
+                                </div>
+                            </div>
+                        {% elif is_expired %}
+
+                            <div class="qhm-qr-status-banner qhm-banner-expired" id="qr-expired-banner">
+                                <div class="qhm-banner-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                </div>
+                                <div class="qhm-banner-text">
+                                    <h3 class="qhm-banner-title">ĐÃ HẾT THỜI HẠN THANH TOÁN CHUYỂN KHOẢN (30 PHÚT)</h3>
+                                    <p class="qhm-banner-desc">
+                                        Thời hạn thanh toán đã hết lúc <strong>{{ payment.expires_at|date:"H:i:s d/m/Y" }}</strong>.
+                                        Mã QR và thông tin tài khoản chuyển khoản đã tạm dừng hiển thị để bảo đảm an toàn giao dịch.
+                                        Chỗ giữ tồn kho và ưu đãi giảm giá của bạn vẫn đang được duy trì và bảo toàn theo quy định.
+                                        Nếu bạn cần hỗ trợ hoặc đã chuyển tiền, vui lòng liên hệ nhân viên để đối soát thủ công.
+                                    </p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="qhm-qr-header">
+                                <h3 class="qhm-qr-title">HƯỚNG DẪN THANH TOÁN CHUYỂN KHOẢN QUA MÃ QR</h3>
+                                <div class="qhm-qr-deadline-badge" id="qr-deadline-badge">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                                    <span>Hạn chuyển khoản: <strong>{{ payment.expires_at|date:"H:i:s d/m/Y" }}</strong> (30 phút từ lúc đặt)</span>
+                                </div>
+                            </div>
+
+                            <div class="qhm-qr-body-grid">
+                                {% if qr_svg %}
+                                    <div class="qhm-qr-visual-col" id="col-qr-visual">
+                                        <div class="qhm-qr-frame">
+                                            <div class="qhm-qr-image-wrapper" id="qr-code-svg-wrapper">
+                                                {{ qr_svg|safe }}
+                                            </div>
+                                            <div class="qhm-qr-scan-hint">
+                                                Quét mã bằng app Mobile Banking hoặc Napas247
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <div class="qhm-qr-details-col {% if not qr_svg %}full-width{% endif %}" id="col-qr-details">
+                                    <h4 class="qhm-qr-details-heading">THÔNG TIN TÀI KHOẢN THỤ HƯỞNG</h4>
+                                    <table class="qhm-qr-details-table">
+                                        <tbody>
+                                            <tr>
+                                                <td class="qhm-qr-label">Ngân hàng:</td>
+                                                <td class="qhm-qr-val">
+                                                    <strong>{{ recipient_snapshot.bank_name }}</strong>
+                                                    <span class="qhm-bin-tag">(BIN: {{ recipient_snapshot.bank_bin }})</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="qhm-qr-label">Số tài khoản:</td>
+                                                <td class="qhm-qr-val">
+                                                    <span class="qhm-account-number" id="qr-bank-account-number">{{ recipient_snapshot.account_number }}</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="qhm-qr-label">Chủ tài khoản:</td>
+                                                <td class="qhm-qr-val" style="text-transform: uppercase;">
+                                                    <strong id="qr-bank-account-holder">{{ recipient_snapshot.account_holder }}</strong>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="qhm-qr-label">Số tiền cần chuyển:</td>
+                                                <td class="qhm-qr-val">
+                                                    <span class="qhm-transfer-amount" id="qr-transfer-amount">{{ order.grand_total_formatted }}</span>
+                                                    <span class="qhm-amount-note">(chuyển chính xác từng đồng)</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="qhm-qr-label">Nội dung chuyển:</td>
+                                                <td class="qhm-qr-val">
+                                                    <span class="qhm-transfer-ref" id="qr-transfer-reference">{{ payment.qr_reference|default:order.order_code }}</span>
+                                                    <div class="qhm-ref-note">Bắt buộc ghi chính xác nội dung này để xác nhận tự động</div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+
+                                    <div class="qhm-qr-action-box" id="box-notify-transfer">
+                                        <form method="post" action="{% url 'orders:notify_transfer' pk=order.pk %}" id="form-notify-transfer">
+                                            {% csrf_token %}
+                                            <button type="submit" class="qhm-btn-notify-transfer" id="btn-notify-transfer">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                                </svg>
+                                                <span>Tôi đã chuyển khoản</span>
+                                            </button>
+                                        </form>
+                                        <p class="qhm-notify-help-text">
+                                            Nhấn nút trên sau khi bạn đã hoàn tất chuyển tiền từ ứng dụng ngân hàng.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
+
+
+            <div class="qhm-order-table-container">
+                <table class="qhm-order-table" id="order-items-table">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 220px;">Sản phẩm</th>
+                            <th>Mã SKU</th>
+                            <th class="col-right">Đơn giá</th>
+                            <th style="text-align: center;">SL</th>
+                            <th class="col-right">Giảm giá</th>
+                            <th class="col-right">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                        <tr id="order-item-row-{{ item.id }}">
+                            <td>
+                                <div style="font-weight: 700; color: var(--navy-950); margin-bottom: 3px;">
+                                    {{ item.product_name_snapshot }}
+                                </div>
+                                {% if item.variant_snapshot %}
+                                <div style="font-size: 12px; color: var(--gray-500);">
+                                    {{ item.variant_snapshot }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <code
+                                    style="font-size: 12px; background: var(--gray-100); padding: 2px 6px; border-radius: 4px;">
+                                        {{ item.sku_snapshot }}
+                                    </code>
+                            </td>
+                            <td class="col-right">{{ item.unit_price_formatted }}</td>
+                            <td style="text-align: center; font-weight: 600;">{{ item.quantity }}</td>
+                            <td class="col-right" style="color: #059669;">
+                                {% if item.discount_amount > 0 %}
+                                -{{ item.discount_amount_formatted }}
+                                {% else %}
+                                0 đ
+                                {% endif %}
+                            </td>
+                            <td class="col-right" style="font-weight: 700; color: var(--navy-950);">
+                                {{ item.line_total_formatted }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background: var(--gray-50);">
+                            <td colspan="5" style="text-align: right; font-weight: 600;">Tiền hàng trước giảm:</td>
+                            <td class="col-right" style="font-weight: 700;" id="order-subtotal">{{ order.subtotal_formatted }}</td>
+                        </tr>
+                        {% if order.discount_total > 0 %}
+                        <tr style="background: var(--gray-50);">
+                            <td colspan="5" style="text-align: right; font-weight: 600; color: #059669;">Giảm giá
+                                voucher:</td>
+                            <td class="col-right" style="font-weight: 700; color: #059669;" id="order-discount-total">
+                                -{{ order.discount_total_formatted }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr style="background: #eff6ff; border-top: 2px solid var(--blue-600);">
+                            <td colspan="5"
+                                style="text-align: right; font-weight: 800; font-size: 15px; color: var(--navy-950);">
+                                TỔNG THANH TOÁN:</td>
+                            <td class="col-right" style="font-weight: 800; font-size: 16px; color: var(--blue-700);"
+                                id="order-grand-total">{{ order.grand_total_formatted }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+
+            {% if status_history %}
+            <div class="qhm-order-history-section" id="order-history-section">
+                <h2 class="qhm-order-history-title">LỊCH SỬ TRẠNG THÁI ĐƠN HÀNG</h2>
+                <ul class="qhm-timeline">
+                    {% for entry in status_history %}
+                    <li class="qhm-timeline-item">
+                        <div class="qhm-timeline-dot"></div>
+                        <div class="qhm-timeline-time">{{ entry.changed_at|date:"d/m/Y - H:i:s" }}</div>
+                        <div class="qhm-timeline-content">
+                            {{ entry.old_status|default:"(Khởi tạo)" }} ➔ <strong>{{ entry.new_status }}</strong>
+                        </div>
+                        {% if entry.reason %}
+                        <div class="qhm-timeline-reason">{{ entry.reason }}</div>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+
+            <div class="qhm-order-detail-actions" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
+                {% if can_cancel %}
+                <noscript>
+                    <a href="{% url 'orders:cancel_order' pk=order.pk %}" class="qhm-btn-danger" id="link-cancel-order-nojs"
+                        style="background-color: #fee2e2; color: #dc2626; border: 1.5px solid #fca5a5; padding: 10px 18px; border-radius: var(--radius-md); font-weight: 600; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        <span>Hủy đơn hàng</span>
+                    </a>
+                </noscript>
+                <button type="button" class="qhm-btn-danger" id="btn-cancel-order"
+                    style="background-color: #fee2e2; color: #dc2626; border: 1.5px solid #fca5a5; padding: 10px 18px; border-radius: var(--radius-md); font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;"
+                    onclick="openCancelModal();">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                    <span>Hủy đơn hàng</span>
+                </button>
+                {% endif %}
+                <a href="{% url 'catalog:public_catalog' %}" class="qhm-btn-secondary" id="btn-continue-shopping">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Tiếp tục mua sắm</span>
+                </a>
+                <a href="{% url 'cart:cart_detail' %}" class="qhm-btn-primary" id="btn-view-cart">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span>Xem giỏ hàng</span>
+                </a>
+            </div>
+        </div>
+
+        {% if can_cancel %}
+
+        <div id="cancel-order-modal" class="qhm-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="cancel-modal-title"
+            style="{% if cancel_form.errors %}display: flex;{% else %}display: none;{% endif %} position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+            <div class="qhm-modal-content" style="background: #ffffff; border-radius: 12px; max-width: 520px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
+                <div class="qhm-modal-header" style="background: #fef2f2; padding: 18px 24px; border-bottom: 1px solid #fee2e2; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 id="cancel-modal-title" style="margin: 0; font-size: 18px; font-weight: 700; color: #b91c1c; display: flex; align-items: center; gap: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        Xác nhận Hủy Đơn Hàng #{{ order.order_code }}
+                    </h3>
+                    <button type="button" id="btn-close-cancel-modal" aria-label="Đóng hộp thoại" onclick="closeCancelModal();"
+                        style="background: transparent; border: none; font-size: 22px; line-height: 1; color: #991b1b; cursor: pointer; padding: 0 4px;">&times;</button>
+                </div>
+                <form method="post" action="{% url 'orders:cancel_order' pk=order.pk %}" id="form-cancel-order" style="padding: 24px;">
+                    {% csrf_token %}
+                    <p style="margin-top: 0; margin-bottom: 16px; font-size: 14px; color: #4b5563; line-height: 1.5;">
+                        Bạn có chắc chắn muốn hủy đơn hàng này không? Sau khi xác nhận, đơn hàng sẽ chuyển sang trạng thái <strong>Đã hủy</strong> và toàn bộ sản phẩm giữ chỗ sẽ được giải phóng.
+                    </p>
+
+                    {% if cancel_form.non_field_errors %}
+                    <div class="alert alert-error" style="padding: 10px 14px; background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; border-radius: 6px; margin-bottom: 14px; font-size: 13.5px;">
+                        {% for err in cancel_form.non_field_errors %}{{ err }}<br>{% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="qhm-form-group" style="margin-bottom: 16px;">
+                        <label for="id_cancel_reason_code" style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; color: #1f2937;">
+                            Lý do hủy đơn <span style="color: #dc2626;">*</span>:
+                        </label>
+                        {{ cancel_form.reason_code }}
+                        {% if cancel_form.reason_code.errors %}
+                        <div class="text-danger" style="color: #dc2626; font-size: 13px; margin-top: 4px;">
+                            {{ cancel_form.reason_code.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="qhm-form-group" style="margin-bottom: 16px;">
+                        <label for="id_cancel_description" style="display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; color: #1f2937;">
+                            Mô tả chi tiết <span id="cancel-desc-required-star" style="color: #dc2626; display: none;">*</span>:
+                        </label>
+                        {{ cancel_form.description }}
+                        <span style="display: block; font-size: 12px; color: #6b7280; margin-top: 4px;">
+                            Bắt buộc nhập khi chọn lý do "Khác" (tối đa 500 ký tự).
+                        </span>
+                        <div id="cancel-char-counter" style="font-size: 12px; color: #6b7280; text-align: right; margin-top: 2px;">
+                            0 / 500 ký tự
+                        </div>
+                        {% if cancel_form.description.errors %}
+                        <div class="text-danger" style="color: #dc2626; font-size: 13px; margin-top: 4px;">
+                            {{ cancel_form.description.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if order.discount_total > 0 %}
+                    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 10px 14px; margin-bottom: 18px; font-size: 13px; color: #92400e; line-height: 1.4;">
+                        <strong>Lưu ý về mã giảm giá:</strong> Lượt sử dụng voucher đã áp dụng cho đơn hàng này sẽ không được hoàn lại theo chính sách áp dụng mã của cửa hàng.
+                    </div>
+                    {% endif %}
+
+                    <div class="qhm-modal-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                        <button type="button" class="qhm-btn-secondary" id="btn-modal-cancel-back" onclick="closeCancelModal();"
+                            style="padding: 10px 18px; border-radius: 6px; font-size: 14px; cursor: pointer; border: 1px solid #d1d5db; background: #fff;">
+                            Quay lại
+                        </button>
+                        <button type="submit" class="qhm-btn-confirm-cancel" id="btn-confirm-cancel"
+                            style="background-color: #dc2626; color: #ffffff; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer;">
+                            Xác nhận Hủy Đơn
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            (function() {
+                var modal = document.getElementById('cancel-order-modal');
+                var openBtn = document.getElementById('btn-cancel-order');
+                var closeBtn = document.getElementById('btn-close-cancel-modal');
+                var cancelBackBtn = document.getElementById('btn-modal-cancel-back');
+                var reasonSelect = document.getElementById('id_cancel_reason_code');
+                var descInput = document.getElementById('id_cancel_description');
+                var star = document.getElementById('cancel-desc-required-star');
+                var counter = document.getElementById('cancel-char-counter');
+                var lastFocusedElement = null;
+
+                function updateDescState() {
+                    if (reasonSelect && star) {
+                        if (reasonSelect.value === 'OTHER') {
+                            star.style.display = 'inline';
+                            if (descInput) descInput.required = true;
+                        } else {
+                            star.style.display = 'none';
+                            if (descInput) descInput.required = false;
+                        }
+                    }
+                }
+
+                function updateCharCount() {
+                    if (descInput && counter) {
+                        var len = descInput.value.length;
+                        counter.textContent = len + ' / 500 ký tự';
+                        if (len > 500) {
+                            counter.style.color = '#dc2626';
+                            counter.style.fontWeight = '600';
+                        } else {
+                            counter.style.color = '#6b7280';
+                            counter.style.fontWeight = 'normal';
+                        }
+                    }
+                }
+
+                function onKeyDownHandler(e) {
+                    if (e.key === 'Escape' || e.keyCode === 27) {
+                        closeCancelModal();
+                        return;
+                    }
+                    if (e.key === 'Tab' || e.keyCode === 9) {
+                        if (!modal || modal.style.display === 'none') return;
+                        var focusable = modal.querySelectorAll('button:not([disabled]), select:not([disabled]), textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])');
+                        if (focusable.length === 0) return;
+                        var first = focusable[0];
+                        var last = focusable[focusable.length - 1];
+
+                        if (e.shiftKey) {
+                            if (document.activeElement === first) {
+                                e.preventDefault();
+                                last.focus();
+                            }
+                        } else {
+                            if (document.activeElement === last) {
+                                e.preventDefault();
+                                first.focus();
+                            }
+                        }
+                    }
+                }
+
+                window.openCancelModal = function() {
+                    if (!modal) return;
+                    lastFocusedElement = document.activeElement;
+                    modal.style.display = 'flex';
+                    document.addEventListener('keydown', onKeyDownHandler);
+                    if (reasonSelect) {
+                        reasonSelect.focus();
+                    } else if (closeBtn) {
+                        closeBtn.focus();
+                    }
+                    updateDescState();
+                    updateCharCount();
+                };
+
+                window.closeCancelModal = function() {
+                    if (!modal) return;
+                    modal.style.display = 'none';
+                    document.removeEventListener('keydown', onKeyDownHandler);
+                    if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+                        lastFocusedElement.focus();
+                    }
+                };
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    if (reasonSelect) {
+                        reasonSelect.addEventListener('change', updateDescState);
+                        updateDescState();
+                    }
+                    if (descInput) {
+                        descInput.addEventListener('input', updateCharCount);
+                        updateCharCount();
+                    }
+                    if (modal && window.getComputedStyle(modal).display !== 'none') {
+                        document.addEventListener('keydown', onKeyDownHandler);
+                        if (reasonSelect) reasonSelect.focus();
+                        updateDescState();
+                        updateCharCount();
+                    }
+                });
+            })();
+        </script>
+        {% endif %}
+        </div>
+    </main>
+
+
+    {% include 'catalog/includes/shared_footer.html' %}
+
+</body>
+
+</html>

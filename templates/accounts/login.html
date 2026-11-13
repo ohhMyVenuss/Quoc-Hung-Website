@@ -1,0 +1,178 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập — Quốc Hùng Mobile</title>
+    <meta name="description" content="Đăng nhập tài khoản Quốc Hùng Mobile để theo dõi đơn hàng, quản lý thông tin và nhận ưu đãi độc quyền.">
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+<body>
+
+
+    {% include 'includes/account_navigation.html' with active_nav='login' %}
+
+
+    <main class="main-content">
+        <div class="auth-card">
+
+            <div class="auth-badge">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2.2"/>
+                    <path d="M8 7V17M16 7V17M8 12H16" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+            </div>
+
+
+            <h1 class="auth-title">ĐĂNG NHẬP</h1>
+            <p class="auth-subtitle">Đăng nhập để theo dõi đơn hàng và nhận ưu đãi thành viên</p>
+
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            {% if message.tags == 'error' %}
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            {% else %}
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            {% endif %}
+                        </svg>
+                        <div>{{ message }}</div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    <div>
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+
+            <form method="post" action="{% url 'accounts:login' %}" class="auth-form" novalidate id="login-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next_url|default:'' }}">
+
+
+                <div class="form-group">
+                    <label for="{{ form.identifier.id_for_label }}" class="form-label">Tên đăng nhập / Email / SĐT:</label>
+                    {{ form.identifier }}
+                    {% if form.identifier.errors %}
+                        <div class="field-error">
+                            <span>⚠</span> {{ form.identifier.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+
+                <div class="form-group">
+                    <label for="{{ form.password.id_for_label }}" class="form-label">Mật khẩu:</label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                        <div class="field-error">
+                            <span>⚠</span> {{ form.password.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+
+                <div class="remember-forgot-row">
+                    <div class="form-checkbox-row">
+                        {{ form.remember_me }}
+                        <label for="{{ form.remember_me.id_for_label }}" class="checkbox-label">
+                            Ghi nhớ đăng nhập trên thiết bị này
+                        </label>
+                    </div>
+                    <a href="javascript:void(0)" class="forgot-password-link disabled" title="Tính năng khôi phục mật khẩu đang được phát triển theo lộ trình">
+                        Quên mật khẩu?
+                    </a>
+                </div>
+
+
+                <button type="submit" class="btn-submit" id="btn-submit-login">ĐĂNG NHẬP</button>
+
+
+                <div class="auth-bottom">
+                    Chưa có tài khoản? <a href="{% url 'accounts:register' %}">Đăng ký tại đây</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+
+            <div class="footer-col">
+                <span class="footer-heading">VỀ QUỐC HÙNG MOBILE</span>
+                <p class="footer-about">
+                    Hệ thống bán lẻ điện thoại di động, máy tính bảng, laptop và phụ kiện công nghệ chính hãng hàng đầu. Cam kết chất lượng, bảo hành uy tín và giá cả cạnh tranh.
+                </p>
+                <div class="footer-hotline-box">
+                    <span class="hotline-label">TỔNG ĐÀI HỖ TRỢ (MIỄN PHÍ)</span>
+                    <span class="hotline-number">1800 6868</span>
+                </div>
+            </div>
+
+
+            <div class="footer-col">
+                <span class="footer-heading">CHÍNH SÁCH MUA HÀNG</span>
+                <ul class="footer-links">
+                    <li class="footer-links-item"><a href="#warranty" class="footer-link">Chính sách bảo hành</a></li>
+                    <li class="footer-links-item"><a href="#return" class="footer-link">Chính sách đổi trả hàng</a></li>
+                    <li class="footer-links-item"><a href="#shipping" class="footer-link">Phương thức vận chuyển</a></li>
+                    <li class="footer-links-item"><a href="#installment" class="footer-link">Hướng dẫn trả góp 0%</a></li>
+                    <li class="footer-links-item"><a href="#terms" class="footer-link">Điều khoản dịch vụ</a></li>
+                </ul>
+            </div>
+
+
+            <div class="footer-col">
+                <span class="footer-heading">HỖ TRỢ KHÁCH HÀNG</span>
+                <ul class="footer-links">
+                    <li class="footer-links-item"><a href="#faq" class="footer-link">Câu hỏi thường gặp (FAQ)</a></li>
+                    <li class="footer-links-item"><a href="#order-lookup" class="footer-link">Tra cứu đơn hàng</a></li>
+                    <li class="footer-links-item"><a href="#points" class="footer-link">Tích điểm thành viên</a></li>
+                    <li class="footer-links-item"><a href="#payment-methods" class="footer-link">Thanh toán COD & QR</a></li>
+                    <li class="footer-links-item"><a href="#privacy" class="footer-link">Chính sách bảo mật</a></li>
+                </ul>
+            </div>
+
+
+            <div class="footer-col">
+                <span class="footer-heading">KẾT NỐI VỚI CHÚNG TÔI</span>
+                <p class="footer-address">
+                    Trụ sở chính: 123 Đường Công Nghệ, Quận 1, TP. Hồ Chí Minh<br>
+                    Email: contact@quochungmobile.vn<br>
+                    Thời gian làm việc: 08:00 – 21:30 (Cả CN & ngày lễ)
+                </p>
+                <div class="footer-payment-badges">
+                    <span class="payment-badge">COD</span>
+                    <span class="payment-badge">VIETQR</span>
+                    <span class="payment-badge">NAPAS</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            © 2026 QUỐC HÙNG MOBILE. TẤT CẢ CÁC QUYỀN ĐƯỢC BẢO LƯU. ĐỒ ÁN LẬP TRÌNH WEB.
+        </div>
+    </footer>
+
+</body>
+</html>

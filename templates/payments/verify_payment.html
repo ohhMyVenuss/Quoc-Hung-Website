@@ -1,0 +1,426 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|default:"Xác minh thanh toán — Quốc Hùng Mobile" }}</title>
+    <meta name="description" content="Đối soát và xác minh giao dịch chuyển khoản ngân hàng qua mã QR.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+    <link rel="stylesheet" href="{% static 'css/orders.css' %}">
+</head>
+
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge="THANH TOÁN" %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav='payment_verification' %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container" style="max-width: 1200px; margin: 0 auto; padding: 24px 16px;">
+
+
+                <div class="qhm-top-nav-row" style="margin-bottom: 20px;">
+                    <a href="{% url 'payments:verification_list' %}" class="qhm-btn-back" id="btn-back-list">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Về Danh sách chờ xác minh</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <a href="{% url 'payments:verification_list' %}"
+                            style="color: inherit; text-decoration: none;">Xác minh thanh toán QR</a>
+                        <span class="sep">/</span>
+                        <span class="current">Đơn #{{ order.order_code }}</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row"
+                    style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h1 class="qhm-mgmt-title"
+                            style="margin: 0; font-size: 22px; font-weight: 700; color: var(--navy-900);">
+                            ĐỐI SOÁT & XÁC MINH THANH TOÁN QR #{{ payment.pk }}
+                        </h1>
+                        <p style="margin: 6px 0 0; font-size: 13.5px; color: var(--gray-600);">
+                            Đơn hàng <strong>#{{ order.order_code }}</strong> — Khách hàng: <strong>{{ order.recipient_name }}</strong> ({{ order.recipient_phone }})
+                        </p>
+                    </div>
+                    <div>
+                        {% if payment.status == 'PAID' %}
+                        <span class="qhm-badge"
+                            style="background-color: #d1fae5; color: #065f46; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700;"
+                            id="badge-payment-status">
+                            ĐÃ THANH TOÁN (PAID)
+                        </span>
+                        {% elif payment.status == 'PENDING_VERIFY' %}
+                        <span class="qhm-badge"
+                            style="background-color: #fef3c7; color: #92400e; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700;"
+                            id="badge-payment-status">
+                            CHỜ XÁC MINH (PENDING_VERIFY)
+                        </span>
+                        {% else %}
+                        <span class="qhm-badge"
+                            style="background-color: var(--gray-200); color: var(--navy-900); padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700;"
+                            id="badge-payment-status">
+                            {{ payment.get_status_display }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+
+                {% if messages %}
+                <div class="qhm-messages-container" style="margin-bottom: 20px;" id="msg-container">
+                    {% for message in messages %}
+                    <div class="qhm-alert qhm-alert-{{ message.tags|default:'info' }}" role="alert"
+                        style="padding: 14px 18px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; font-weight: 500; background-color: {% if message.tags == 'success' %}#ecfdf5; border: 1px solid #a7f3d0; color: #065f46;{% elif message.tags == 'error' %}#fef2f2; border: 1px solid #fecaca; color: #991b1b;{% elif message.tags == 'warning' %}#fffbeb; border: 1px solid #fde68a; color: #92400e;{% else %}#eff6ff; border: 1px solid #bfdbfe; color: #1e40af;{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+
+                {% if active_reconciliation %}
+                <div class="qhm-alert" role="alert"
+                    style="background-color: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;"
+                    id="banner-active-reconciliation">
+                    <div>
+                        <strong style="display: block; font-size: 14px;">Đơn hàng đang có hồ sơ đối soát ngoại lệ chưa
+                            giải quyết (Hồ sơ #{{ active_reconciliation.pk }}):</strong>
+                        <span style="font-size: 13px;">Lý do: <strong>{{ active_reconciliation.get_reason_code_display }}</strong> — Mở lúc {{ active_reconciliation.created_at|date:"H:i:s d/m/Y" }} bởi {{ active_reconciliation.handled_by.username|default:"Hệ thống" }}</span>
+                    </div>
+                    <div>
+                        <a href="{% url 'payments:reconciliation_detail' active_reconciliation.pk %}"
+                            class="qhm-btn-primary"
+                            style="padding: 6px 14px; font-size: 12.5px; font-weight: 600; text-decoration: none; border-radius: 6px; display: inline-block;">
+                            Xem hồ sơ đối soát »
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+
+                {% if form.errors %}
+                <div class="qhm-alert" role="alert"
+                    style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;"
+                    id="form-errors-box">
+                    <strong style="display: block; margin-bottom: 6px;">Dữ liệu nhập đối soát chưa khớp hoặc không hợp
+                        lệ:</strong>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 13.5px;">
+                        {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; align-items: start;">
+
+
+                    <div class="qhm-info-card"
+                        style="background: white; border: 1px solid var(--gray-200); border-radius: 10px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
+                        id="card-stored-info">
+                        <h2
+                            style="margin: 0 0 16px; font-size: 16px; font-weight: 700; color: var(--navy-900); border-bottom: 2px solid var(--gray-100); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                style="color: var(--blue-600);">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            THÔNG TIN KỲ VỌNG ĐÃ LƯU TRỮ
+                        </h2>
+
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+                            <tbody>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 10px 0; color: var(--gray-600); width: 45%;">Mã đơn hàng:</td>
+                                    <td style="padding: 10px 0; font-weight: 700; color: var(--navy-900);"
+                                        id="expected-order-code">
+                                        #{{ order.order_code }}
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 10px 0; color: var(--gray-600);">Số tiền cần thanh toán:</td>
+                                    <td style="padding: 10px 0; font-size: 16px; font-weight: 700; color: var(--blue-600);"
+                                        id="expected-amount">
+                                        {{ payment.expected_amount_formatted }}
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 10px 0; color: var(--gray-600);">Mã tham chiếu chuyển khoản:
+                                    </td>
+                                    <td style="padding: 10px 0;" id="expected-reference">
+                                        <code
+                                            style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-size: 13.5px; font-weight: 700;">
+                                            {{ payment.qr_reference|default:order.order_code }}
+                                        </code>
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 10px 0; color: var(--gray-600);">Ngân hàng thụ hưởng:</td>
+                                    <td style="padding: 10px 0; font-weight: 600; color: var(--navy-900);"
+                                        id="expected-bank-name">
+                                        {{ payment.recipient_bank_name|default:"Chưa có snapshot" }}
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 10px 0; color: var(--gray-600);">Số tài khoản thụ hưởng:</td>
+                                    <td style="padding: 10px 0; font-weight: 700; color: var(--navy-900);"
+                                        id="expected-account-number">
+                                        <span style="font-family: monospace; font-size: 15px;">{{ payment.recipient_account_number|default:"Chưa có snapshot" }}</span>
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 10px 0; color: var(--gray-600);">Chủ tài khoản thụ hưởng:</td>
+                                    <td style="padding: 10px 0; font-weight: 600; color: var(--navy-900);"
+                                        id="expected-account-holder">
+                                        {{ payment.recipient_account_holder|default:"Chưa có snapshot" }}
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 10px 0; color: var(--gray-600);">Thời điểm khách báo CK:</td>
+                                    <td style="padding: 10px 0;" id="expected-notified-at">
+                                        {% if payment.customer_notified_at %}
+                                        <span style="color: #1e40af; font-weight: 600;">{{ payment.customer_notified_at|date:"H:i:s d/m/Y" }}</span>
+                                        {% else %}
+                                        <span style="color: var(--gray-500); font-style: italic;">Khách chưa bấm thông
+                                            báo</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid var(--gray-100);">
+                                    <td style="padding: 10px 0; color: var(--gray-600);">Hạn thanh toán 30 phút:</td>
+                                    <td style="padding: 10px 0;" id="expected-expires-at">
+                                        {% if payment.expires_at %}
+                                        <span>{{ payment.expires_at|date:"H:i:s d/m/Y" }}</span>
+                                        {% if is_expired %}
+                                        <span class="qhm-badge"
+                                            style="background-color: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 6px;">Đã
+                                            quá hạn</span>
+                                        {% else %}
+                                        <span class="qhm-badge"
+                                            style="background-color: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 6px;">Còn
+                                            hiệu lực</span>
+                                        {% endif %}
+                                        {% else %}
+                                        <span style="color: var(--gray-500);">Không thời hạn</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 10px 0; color: var(--gray-600);">Trạng thái đơn hàng:</td>
+                                    <td style="padding: 10px 0; font-weight: 600;" id="expected-order-status">
+                                        {{ order.get_order_status_display }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+
+                        <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--gray-100);">
+                            <div style="font-weight: 600; font-size: 13px; color: var(--gray-700); margin-bottom: 8px;">
+                                Mặt hàng đặt mua:</div>
+                            <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: var(--navy-900);">
+                                {% for item in order.items.all %}
+                                <li style="margin-bottom: 4px;">
+                                    {{ item.product_name }} - {{ item.variant_name }} &times; <strong>{{ item.quantity }}</strong>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+
+                    <div class="qhm-form-card"
+                        style="background: white; border: 1px solid var(--gray-200); border-radius: 10px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
+                        id="card-verification-form">
+
+                        {% if payment.status == 'PAID' %}
+
+                        <div style="text-align: center; padding: 20px 0;" id="verified-success-box">
+                            <div
+                                style="width: 56px; height: 56px; background-color: #d1fae5; color: #059669; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </div>
+                            <h2 style="margin: 0 0 8px; font-size: 18px; font-weight: 700; color: #065f46;">
+                                GIAO DỊCH ĐÃ ĐƯỢC XÁC MINH THÀNH CÔNG
+                            </h2>
+                            <p style="margin: 0 0 20px; font-size: 13.5px; color: var(--gray-600);">
+                                Xác nhận bởi nhân viên <strong>{{ payment.verified_by.username|default:"Hệ thống" }}</strong> lúc <strong>{{ payment.verified_at|date:"H:i:s d/m/Y" }}</strong>.
+                            </p>
+
+                            {% if existing_transactions %}
+                            <div style="text-align: left; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 8px; padding: 16px; margin-top: 14px;"
+                                id="transaction-records-box">
+                                <div
+                                    style="font-weight: 700; font-size: 13.5px; color: var(--navy-900); margin-bottom: 10px;">
+                                    Chứng từ giao dịch ngân hàng đã ghi nhận (Bảng 18):
+                                </div>
+                                {% for tx in existing_transactions %}
+                                <div
+                                    style="font-size: 13px; line-height: 1.6; border-bottom: 1px dashed var(--gray-300); padding-bottom: 8px; margin-bottom: 8px;">
+                                    <div>• Mã GD Ngân hàng: <strong id="tx-ref-{{ tx.id }}">{{ tx.bank_transaction_ref }}</strong></div>
+                                    <div>• Số tiền thực nhận: <strong style="color: var(--blue-700);"
+                                            id="tx-amount-{{ tx.id }}">{{ tx.received_amount|floatformat:0 }}
+                                            VNĐ</strong></div>
+                                    <div>• 4 số cuối TK nhận: <code
+                                            id="tx-last4-{{ tx.id }}">{{ tx.recipient_account_last4 }}</code></div>
+                                    <div>• Nội dung chuyển khoản: <span id="tx-content-{{ tx.id }}">{{ tx.transfer_content }}</span></div>
+                                    <div>• Trạng thái: <span class="qhm-badge"
+                                            style="background:#d1fae5; color:#065f46; padding: 2px 6px; border-radius: 4px; font-weight: 600;">{{ tx.verification_status }}</span></div>
+                                    <div style="font-size: 12px; color: var(--gray-500);">• Thời điểm nhận: {{ tx.received_at|date:"H:i:s d/m/Y" }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        {% else %}
+
+                        <h2
+                            style="margin: 0 0 16px; font-size: 16px; font-weight: 700; color: var(--navy-900); border-bottom: 2px solid var(--gray-100); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                style="color: var(--blue-600);">
+                                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                                <line x1="2" y1="10" x2="22" y2="10"></line>
+                            </svg>
+                            NHẬP DỮ LIỆU ĐỐI SOÁT TỪ NGÂN HÀNG
+                        </h2>
+
+                        <form method="post" action="" novalidate id="form-verify-payment">
+                            {% csrf_token %}
+
+                            <div class="qhm-form-group" style="margin-bottom: 16px;">
+                                <label for="id_observed_recipient_account"
+                                    style="display: block; font-weight: 600; font-size: 13.5px; color: var(--navy-900); margin-bottom: 6px;">
+                                    Tài khoản nhận tiền thực tế <span style="color: #dc2626;">*</span>
+                                </label>
+                                {{ form.observed_recipient_account }}
+                                <span style="display: block; font-size: 12px; color: var(--gray-500); margin-top: 4px;">
+                                    Kỳ vọng: <code>{{ payment.recipient_account_number }}</code>
+                                </span>
+                            </div>
+
+                            <div class="qhm-form-group" style="margin-bottom: 16px;">
+                                <label for="id_observed_amount"
+                                    style="display: block; font-weight: 600; font-size: 13.5px; color: var(--navy-900); margin-bottom: 6px;">
+                                    Số tiền thực nhận (VNĐ) <span style="color: #dc2626;">*</span>
+                                </label>
+                                {{ form.observed_amount }}
+                                <span style="display: block; font-size: 12px; color: var(--gray-500); margin-top: 4px;">
+                                    Kỳ vọng đúng: <code>{{ payment.expected_amount_formatted }}</code>
+                                </span>
+                            </div>
+
+                            <div class="qhm-form-group" style="margin-bottom: 16px;">
+                                <label for="id_observed_transfer_reference"
+                                    style="display: block; font-weight: 600; font-size: 13.5px; color: var(--navy-900); margin-bottom: 6px;">
+                                    Nội dung chuyển khoản thực tế <span style="color: #dc2626;">*</span>
+                                </label>
+                                {{ form.observed_transfer_reference }}
+                                <span style="display: block; font-size: 12px; color: var(--gray-500); margin-top: 4px;">
+                                    Kỳ vọng chứa mã tham chiếu:
+                                    <code>{{ payment.qr_reference|default:order.order_code }}</code>
+                                </span>
+                            </div>
+
+                            <div class="qhm-form-group" style="margin-bottom: 16px;">
+                                <label for="id_bank_transaction_ref"
+                                    style="display: block; font-weight: 600; font-size: 13.5px; color: var(--navy-900); margin-bottom: 6px;">
+                                    Mã giao dịch ngân hàng (FT/Trace ID) <span style="color: #dc2626;">*</span>
+                                </label>
+                                {{ form.bank_transaction_ref }}
+                                <span style="display: block; font-size: 12px; color: var(--gray-500); margin-top: 4px;">
+                                    Mã giao dịch duy nhất từ ngân hàng. Không được trùng với bất kỳ giao dịch nào trước
+                                    đó.
+                                </span>
+                            </div>
+
+                            <div class="qhm-form-group" style="margin-bottom: 20px;">
+                                <label for="id_received_at"
+                                    style="display: block; font-weight: 600; font-size: 13.5px; color: var(--navy-900); margin-bottom: 6px;">
+                                    Thời điểm nhận tiền thực tế từ ngân hàng <span style="color: #dc2626;">*</span>
+                                </label>
+                                {{ form.received_at }}
+                                <span style="display: block; font-size: 12px; color: var(--gray-500); margin-top: 4px;">
+                                    Thời điểm ghi có giao dịch trên sao kê/sổ phụ ngân hàng (bắt buộc, không được ở
+                                    tương lai).
+                                </span>
+                            </div>
+
+                            <div
+                                style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 20px; font-size: 12.5px; color: var(--gray-600); line-height: 1.5;">
+                                <strong>Chính sách đối soát:</strong> Thao tác này sẽ ghi nhận chứng từ thanh toán vào
+                                Bảng 18, cập nhật trạng thái đơn hàng sang <em>Chờ xác nhận</em>, tiêu thụ mã giảm giá
+                                nếu có và bảo toàn chỗ giữ hàng trong kho.
+                            </div>
+
+                            <button type="submit" class="qhm-btn-primary"
+                                style="width: 100%; padding: 12px 20px; font-size: 14px; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                                id="btn-submit-verify">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Xác nhận khớp & Đánh dấu Đã thanh toán
+                            </button>
+                        </form>
+
+                        {% if not active_reconciliation %}
+                        <div
+                            style="margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--gray-300); text-align: center;">
+                            <div style="font-size: 12.5px; color: var(--gray-600); margin-bottom: 8px;">
+                                Giao dịch sai lệch số tiền, sai mã tham chiếu hoặc đơn hết hạn?
+                            </div>
+                            <a href="{% url 'payments:open_reconciliation' payment.pk %}" class="qhm-btn-secondary"
+                                style="display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px 16px; border: 1px solid #d97706; color: #b45309; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13.5px;"
+                                id="btn-goto-open-reconciliation">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="12" y1="18" x2="12" y2="12"></line>
+                                    <line x1="9" y1="15" x2="15" y2="15"></line>
+                                </svg>
+                                Mở hồ sơ đối soát ngoại lệ (Task 09.5)
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+</body>
+
+</html>

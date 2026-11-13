@@ -1,0 +1,257 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if selected_category %}{{ selected_category.name }} — {% endif %}Sản phẩm — Quốc Hùng Mobile</title>
+    <meta name="description" content="Khám phá các thiết bị di động, máy tính bảng và phụ kiện chính hãng tại Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+</head>
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/public_header.html' %}
+
+
+    <main class="qhm-pub-main" role="main">
+
+        <div class="qhm-top-nav-row" style="margin-bottom: 20px;">
+            <a href="{% url 'home' %}" class="qhm-btn-back" id="btn-back-home">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>Quay lại Trang chủ</span>
+            </a>
+            <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                <a href="{% url 'home' %}">Trang chủ</a>
+                <span class="sep">/</span>
+                {% if selected_category %}
+                    <a href="{% url 'catalog:public_catalog' %}">Danh mục sản phẩm</a>
+                    <span class="sep">/</span>
+                    <span class="current">{{ selected_category.name }}</span>
+                {% else %}
+                    <span class="current">Danh mục sản phẩm</span>
+                {% endif %}
+            </div>
+        </div>
+
+
+        <div class="qhm-hero-banner">
+            <span class="qhm-hero-tag">
+                {% if selected_category %}DANH MỤC SẢN PHẨM{% else %}QUỐC HÙNG MOBILE{% endif %}
+            </span>
+            <h1 class="qhm-hero-title">
+                {% if selected_category %}{{ selected_category.name|upper }}{% else %}DANH MỤC THIẾT BỊ DI ĐỘNG &amp; CÔNG NGHỆ{% endif %}
+            </h1>
+            <p class="qhm-hero-desc">
+                {% if selected_category %}
+                    {{ selected_category.description|default:"Danh mục sản phẩm thiết bị di động tại Quốc Hùng Mobile." }}
+                {% else %}
+                    Khám phá các dòng sản phẩm thiết bị di động, máy tính bảng và phụ kiện chính hãng được cập nhật trên hệ thống Quốc Hùng Mobile.
+                {% endif %}
+            </p>
+        </div>
+
+
+        {% if categories %}
+            <div class="qhm-cat-pills-bar" aria-label="Lọc nhanh danh mục">
+                <a href="{% url 'catalog:public_catalog' %}{% if search_query %}?q={{ search_query|urlencode }}{% endif %}" class="qhm-cat-pill {% if not selected_category %}active{% endif %}" id="pill-all-cats">
+                    Tất cả thiết bị
+                </a>
+                {% for cat in categories %}
+                    <a href="{% url 'catalog:public_category' cat.id %}{% if search_query %}?q={{ search_query|urlencode }}{% endif %}" class="qhm-cat-pill {% if selected_category.id == cat.id %}active{% endif %}" id="pill-cat-{{ cat.id }}">
+                        {{ cat.name }}
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+
+        <div class="qhm-pub-layout">
+
+            <aside class="qhm-pub-sidebar" aria-label="Bộ lọc tìm kiếm">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                    <h2 class="qhm-pub-sidebar-title" style="margin: 0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                        <span>BỘ LỌC TÌM KIẾM</span>
+                    </h2>
+                    {% if search_query or selected_category %}
+                        <a href="{% url 'catalog:public_catalog' %}" style="font-size: 12px; font-weight: 600; color: var(--red-600); text-decoration: none;" id="btn-clear-filters-mini" title="Xóa toàn bộ bộ lọc">
+                            Xóa lọc
+                        </a>
+                    {% endif %}
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 13px; font-weight: 700; color: var(--navy-950); margin-bottom: 10px;">
+                        Danh mục sản phẩm:
+                    </div>
+                    <ul class="qhm-pub-cat-filter-list">
+                        <li>
+                            <a href="{% url 'catalog:public_catalog' %}{% if search_query %}?q={{ search_query|urlencode }}{% endif %}" class="qhm-pub-cat-filter-link {% if not selected_category %}active{% endif %}">
+                                <span>Tất cả danh mục</span>
+                            </a>
+                        </li>
+                        {% for cat in categories %}
+                            <li>
+                                <a href="{% url 'catalog:public_category' cat.id %}{% if search_query %}?q={{ search_query|urlencode }}{% endif %}" class="qhm-pub-cat-filter-link {% if selected_category.id == cat.id %}active{% endif %}">
+                                    <span>{{ cat.name }}</span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                {% if search_query or selected_category %}
+                    <div style="border-top: 1px solid var(--gray-200); padding-top: 16px;">
+                        <a href="{% url 'catalog:public_catalog' %}" class="qhm-btn-table-outline-red" style="width: 100%; justify-content: center;" id="btn-clear-filters">
+                            Xóa bộ lọc
+                        </a>
+                    </div>
+                {% endif %}
+            </aside>
+
+
+            <section class="qhm-pub-products-section" aria-label="Danh sách sản phẩm">
+
+                <div class="qhm-pub-results-header">
+                    <div>
+                        {% if page_obj.paginator.num_pages > 1 %}
+                            Hiển thị <strong>{{ page_obj.start_index }} &ndash; {{ page_obj.end_index }}</strong> trong tổng số <strong>{{ total_results_count }}</strong> sản phẩm phù hợp
+                        {% else %}
+                            Hiển thị <strong>{{ total_results_count }}</strong> sản phẩm phù hợp
+                        {% endif %}
+                        {% if search_query %}
+                            với từ khóa "<strong>{{ search_query }}</strong>"
+                        {% endif %}
+                        {% if selected_category %}
+                            trong <strong>{{ selected_category.name }}</strong>
+                        {% endif %}
+                    </div>
+                    {% if search_query or selected_category %}
+                        <a href="{% url 'catalog:public_catalog' %}" class="qhm-clear-filter-link" id="link-clear-filter-header" title="Xóa toàn bộ bộ lọc và từ khóa">
+                            <span>Xóa bộ lọc</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </div>
+
+
+                {% if products %}
+                    <div class="qhm-pub-grid" id="public-product-grid">
+                        {% for p in products %}
+                            <article class="qhm-product-card" id="product-card-{{ p.id }}">
+
+                                <a href="{% url 'catalog:public_product_detail' p.id %}" class="qhm-card-thumb-wrap" title="{{ p.name }}">
+                                    {% with p.images.first as thumb %}
+                                        {% if thumb %}
+                                            <img src="{{ thumb.image.url }}" alt="{{ p.name }}" loading="lazy" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2394a3b8\' stroke-width=\'1.5\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><path d=\'M21 15l-5-5L5 21\'/></svg>';">
+                                        {% else %}
+                                            <div style="text-align: center; color: var(--gray-400);">
+                                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                                </svg>
+                                                <div style="font-size: 11.5px; font-weight: 500; margin-top: 4px;">Hình ảnh đang cập nhật</div>
+                                            </div>
+                                        {% endif %}
+                                    {% endwith %}
+
+                                    {% if p.brand %}
+                                        <span class="qhm-card-brand-badge">{{ p.brand }}</span>
+                                    {% endif %}
+                                </a>
+
+
+                                <div class="qhm-card-cat-code">
+                                    <span class="qhm-card-cat-name">{{ p.category.name }}</span>
+                                </div>
+
+
+                                <h3 class="qhm-card-name" title="{{ p.name }}">
+                                    {{ p.name }}
+                                </h3>
+
+
+                                <div class="qhm-customer-notice-box">
+                                    {% if p.has_active_variants %}
+                                        <span class="qhm-has-variants-notice">Xem phiên bản và giá bán</span>
+                                    {% else %}
+                                        {{ customer_notice }}
+                                    {% endif %}
+                                </div>
+
+
+                                <a href="{% url 'catalog:public_product_detail' p.id %}" class="qhm-btn-view-detail" id="btn-view-prod-{{ p.id }}">
+                                    Xem chi tiết
+                                </a>
+                            </article>
+                        {% endfor %}
+                    </div>
+
+
+                    {% if page_obj.has_other_pages %}
+                        <nav class="qhm-pagination-wrap" aria-label="Phân trang danh mục sản phẩm">
+                            <div class="qhm-pagination-controls">
+                                {% if page_obj.has_previous %}
+                                    <a href="?page={{ page_obj.previous_page_number }}{% if preserved_querystring %}&{{ preserved_querystring }}{% endif %}" class="qhm-page-btn qhm-page-nav-btn" id="pagination-prev" aria-label="Trang trước">
+                                        &laquo;
+                                    </a>
+                                {% else %}
+                                    <span class="qhm-page-btn qhm-page-nav-btn disabled" aria-disabled="true">&laquo;</span>
+                                {% endif %}
+
+                                <div class="qhm-page-numbers">
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <span class="qhm-page-btn active" aria-current="page">{{ num }}</span>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                            <a href="?page={{ num }}{% if preserved_querystring %}&{{ preserved_querystring }}{% endif %}" class="qhm-page-btn">{{ num }}</a>
+                                        {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                                            <a href="?page={{ num }}{% if preserved_querystring %}&{{ preserved_querystring }}{% endif %}" class="qhm-page-btn">{{ num }}</a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+
+                                {% if page_obj.has_next %}
+                                    <a href="?page={{ page_obj.next_page_number }}{% if preserved_querystring %}&{{ preserved_querystring }}{% endif %}" class="qhm-page-btn qhm-page-nav-btn" id="pagination-next" aria-label="Trang sau">
+                                        &raquo;
+                                    </a>
+                                {% else %}
+                                    <span class="qhm-page-btn qhm-page-nav-btn disabled" aria-disabled="true">&raquo;</span>
+                                {% endif %}
+                            </div>
+                        </nav>
+                    {% endif %}
+
+                {% else %}
+
+                    <div style="background-color: #ffffff; border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 56px 24px; text-align: center; color: var(--gray-500); box-shadow: var(--shadow-card);">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px; color: var(--gray-400);">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--navy-950); margin: 0 0 6px 0;">Không tìm thấy sản phẩm nào</h3>
+                        <p style="font-size: 13.5px; margin: 0 0 16px 0;">Hiện chưa có sản phẩm nào phù hợp với danh mục hoặc từ khóa tìm kiếm đã chọn.</p>
+                        <a href="{% url 'catalog:public_catalog' %}" class="qhm-btn-primary" style="display: inline-flex;" id="btn-empty-reset">
+                            Xem tất cả sản phẩm
+                        </a>
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+    </main>
+
+
+    {% include 'catalog/includes/shared_footer.html' %}
+
+</body>
+</html>

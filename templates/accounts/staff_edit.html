@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa tài khoản nhân viên — Quốc Hùng Mobile</title>
+    <meta name="description" content="Chỉnh sửa thông tin và vai trò tài khoản nhân viên hệ thống Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+<body>
+
+
+    {% include 'includes/account_navigation.html' with active_nav='staff' %}
+
+
+    <div class="breadcrumb-bar">
+        <div class="breadcrumb-inner">
+            <a href="{% url 'accounts:landing' %}" class="breadcrumb-item">Trang chủ</a>
+            <span class="breadcrumb-sep">›</span>
+            <a href="{% url 'accounts:staff_list' %}" class="breadcrumb-item">Quản lý nhân viên</a>
+            <span class="breadcrumb-sep">›</span>
+            <span class="breadcrumb-current">Chỉnh sửa: {{ target_user.username }}</span>
+        </div>
+    </div>
+
+
+    <main class="main-content">
+        <div class="staff-container">
+            <div class="staff-form-card">
+                <div class="profile-header">
+                    <h1 class="profile-title">Chỉnh sửa tài khoản nhân viên</h1>
+                    <p class="profile-subtitle">Cập nhật thông tin hồ sơ và vai trò của tài khoản: <strong>{{ target_user.username }}</strong></p>
+                </div>
+
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                {% if message.tags == 'error' %}
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                {% else %}
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                {% endif %}
+                            </svg>
+                            <div>{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        <div>
+                            {% for err in form.non_field_errors %}
+                                <p style="margin: 0;">{{ err }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'accounts:staff_edit' target_user.id %}" class="profile-form-fields" novalidate>
+                    {% csrf_token %}
+
+
+                    <div class="form-group">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            {{ form.username.label }} (Cố định)
+                        </label>
+                        {{ form.username }}
+                        <small style="color: var(--slate-500); font-size: 12px; margin-top: 4px; display: block;">
+                            Tên đăng nhập không thể thay đổi sau khi tài khoản đã được khởi tạo.
+                        </small>
+                    </div>
+
+
+                    <div class="staff-form-row">
+                        <div class="form-group">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                {{ form.last_name.label }}
+                            </label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="form-error">{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                {{ form.first_name.label }}
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="form-error">{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            {{ form.email.label }}
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="form-error" id="error-email">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            {{ form.roles.label }} <span style="color: var(--danger);">*</span>
+                        </label>
+                        <div class="staff-role-options">
+                            {% for role_val, role_label in form.fields.roles.choices %}
+                                <label class="staff-role-option-item">
+                                    <input type="checkbox" name="roles" value="{{ role_val }}" {% if role_val in form.roles.value or role_val in form.initial.roles %}checked{% endif %}>
+                                    <span>{{ role_label }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                        {% if form.roles.errors %}
+                            <div class="form-error" id="error-roles">{{ form.roles.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+
+                    <div class="form-group" style="background: var(--slate-50); padding: 14px 16px; border-radius: 8px; border: 1px solid var(--slate-200); margin-top: 6px;">
+                        <div style="font-size: 13.5px; color: var(--slate-700); display: flex; align-items: center; justify-content: space-between;">
+                            <span>Trạng thái tài khoản hiện tại:</span>
+                            {% if target_user.is_active %}
+                                <span class="status-badge status-badge-active">✓ Đang hoạt động</span>
+                            {% else %}
+                                <span class="status-badge status-badge-inactive">✕ Đã vô hiệu hóa</span>
+                            {% endif %}
+                        </div>
+                        <small style="color: var(--slate-500); font-size: 12px; margin-top: 6px; display: block;">
+                            Để kích hoạt hoặc vô hiệu hóa tài khoản này, vui lòng sử dụng nút thao tác chuyên biệt tại <a href="{% url 'accounts:staff_list' %}" style="color: var(--primary-blue); font-weight: 600;">Danh sách nhân viên</a>.
+                        </small>
+                    </div>
+
+
+                    <div class="profile-actions-row" style="margin-top: 20px;">
+                        <button type="submit" class="btn-primary" id="btn-save-staff" style="padding: 11px 24px; font-size: 14px; font-weight: 700; border-radius: 8px;">
+                            Lưu thay đổi
+                        </button>
+                        <a href="{% url 'accounts:staff_list' %}" class="btn-secondary" style="border-radius: 8px;">
+                            Hủy bỏ
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+
+    <footer class="site-footer">
+        <div class="footer-bottom">
+            © 2026 QUỐC HÙNG MOBILE. TẤT CẢ CÁC QUYỀN ĐƯỢC BẢO LƯU. ĐỒ ÁN LẬP TRÌNH WEB.
+        </div>
+    </footer>
+
+</body>
+</html>

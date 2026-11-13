@@ -1,0 +1,55 @@
+{% load static %}
+<header class="qhm-mgmt-header" role="banner">
+    <div class="qhm-mgmt-header-left">
+
+        <button type="button" class="qhm-mobile-nav-toggle" id="qhm-sidebar-toggle" aria-label="Mở menu quản trị" aria-controls="qhm-mgmt-sidebar" aria-expanded="false" onclick="toggleQhmSidebar()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+
+
+        <a href="{% url 'accounts:landing' %}" class="qhm-brand-logo-wrap" title="Về Cổng tài khoản">
+            <div class="qhm-brand-icon-h" aria-hidden="true">H</div>
+            <span class="qhm-brand-title">QUỐC HÙNG MOBILE</span>
+        </a>
+
+        <div class="qhm-mgmt-sep" aria-hidden="true"></div>
+
+
+        <span class="qhm-mgmt-sys-label">
+            {% if is_admin %}HỆ THỐNG QUẢN TRỊ ADMIN{% elif is_inventory_staff and not is_sales_staff %}HỆ THỐNG QUẢN LÝ KHO HÀNG{% else %}HỆ THỐNG QUẢN LÝ BÁN HÀNG{% endif %}
+        </span>
+
+
+        <span class="qhm-mgmt-module-pill">
+            {{ module_badge|default:"QUẢN LÝ HỆ THỐNG" }}
+        </span>
+    </div>
+
+    <div class="qhm-mgmt-header-right">
+
+        <div class="qhm-mgmt-user-box">
+            <div class="qhm-user-avatar-circle" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            <span class="qhm-mgmt-user-role-name">
+                {% if is_admin %}Admin: {{ user.username }}{% elif is_inventory_staff and not is_sales_staff %}Kho: {{ user.username }}{% elif is_sales_staff %}Nhân viên: {{ user.username }}{% else %}{{ user.username }}{% endif %}
+            </span>
+            <span class="qhm-user-dot" aria-hidden="true">•</span>
+
+
+            <form method="post" action="{% url 'accounts:logout' %}" style="margin: 0; display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="qhm-btn-logout-link" title="Đăng xuất an toàn khỏi hệ thống" id="mgmt-header-logout-btn">
+                    <span>Đăng xuất</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</header>

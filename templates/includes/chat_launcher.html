@@ -1,0 +1,12 @@
+{% load static %}
+
+{% if active_nav != 'chat' and active_nav != 'chat_staff' %}
+{% if not user.is_authenticated or is_customer %}
+<link rel="stylesheet" href="{% static 'css/chat.css' %}">
+<a href="{% url 'chat:chat' %}" class="chat-launcher" id="chat-launcher" aria-label="Mở chat hỗ trợ" title="Chat với Quốc Hùng Mobile">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+</a>
+{% endif %}
+{% endif %}

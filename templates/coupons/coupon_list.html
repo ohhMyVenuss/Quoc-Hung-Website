@@ -1,0 +1,410 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách mã khuyến mãi / Voucher — Quốc Hùng Mobile</title>
+    <meta name="description" content="Hệ thống quản trị mã khuyến mãi và voucher toàn hệ thống Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+</head>
+
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge=module_badge %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav=active_nav %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container">
+
+                <div class="qhm-top-nav-row">
+                    <a href="{% url 'accounts:landing' %}" class="qhm-btn-back" id="btn-back-landing">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Về Cổng tài khoản</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <span>Tiếp thị & Khuyến mãi</span>
+                        <span class="sep">/</span>
+                        <span class="current">Quản lý mã Voucher</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row"
+                    style="align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h1 class="qhm-mgmt-title" style="margin: 0; font-size: 22px;">DANH SÁCH MÃ KHUYẾN MÃI / VOUCHER
+                            TOÀN HỆ THỐNG</h1>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <button type="button" class="qhm-btn-secondary" disabled
+                            title="Báo cáo sử dụng voucher thuộc giai đoạn tiếp theo (UI-48)"
+                            style="opacity: 0.6; cursor: not-allowed; padding: 9px 16px; font-size: 13px; font-weight: 600; border-radius: 8px;">
+                            Báo cáo sử dụng
+                        </button>
+                        <a href="{% url 'coupons:coupon_create' %}" class="qhm-btn-primary" id="btn-create-voucher"
+                            style="padding: 9px 18px; font-size: 13px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>+ Tạo Voucher mới</span>
+                        </a>
+                    </div>
+                </div>
+
+
+                {% if messages %}
+                {% for message in messages %}
+                <div class="qhm-alert qhm-alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}"
+                    role="alert">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        {% if message.tags == 'error' %}
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                        {% else %}
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        {% endif %}
+                    </svg>
+                    <div>{{ message }}</div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+
+                <div class="qhm-metrics-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+
+                    <div class="qhm-card"
+                        style="padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; background: #ffffff;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 0.5px;">TỔNG SỐ VOUCHER</span>
+                            <span class="qhm-badge qhm-badge-info"
+                                style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: #e0f2fe; color: #0284c7;">Toàn
+                                hệ thống</span>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 4px;"
+                            id="metric-total-coupons">
+                            {{ metrics.total_coupons }} chương trình
+                        </div>
+                        <div style="font-size: 12px; color: #64748b;">Tổng số mã đã thiết lập</div>
+                    </div>
+
+
+                    <div class="qhm-card"
+                        style="padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; background: #ffffff;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span
+                                style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 0.5px;">VOUCHER ĐANG HOẠT ĐỘNG</span>
+                            <span class="qhm-badge qhm-badge-success"
+                                style="font-size: 11px; padding: 2px 8px; border-radius: 9999px;">Đang chạy</span>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 4px;"
+                            id="metric-active-count">
+                            {{ metrics.active_count }} chương trình
+                        </div>
+                        <div style="font-size: 12px; color: #64748b;">Đang trong thời gian hiệu lực &amp; còn lượt</div>
+                    </div>
+
+
+                    <div class="qhm-card"
+                        style="padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; background: #ffffff;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 0.5px;">TỔNG LƯỢT ĐÃ DÙNG</span>
+                            <span class="qhm-badge qhm-badge-success"
+                                style="font-size: 11px; padding: 2px 8px; border-radius: 9999px;">Máy chủ ghi
+                                nhận</span>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 4px;"
+                            id="metric-total-used">
+                            {{ metrics.total_used }} lượt
+                        </div>
+                        <div style="font-size: 12px; color: #64748b;">Ghi nhận trên hệ thống</div>
+                    </div>
+
+
+                    <div class="qhm-card"
+                        style="padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; background: #ffffff;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 0.5px;">LƯỢT ĐANG TẠM GIỮ</span>
+                            <span class="qhm-badge qhm-badge-warning"
+                                style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: #fef3c7; color: #d97706;">Tạm
+                                giữ</span>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 4px;"
+                            id="metric-total-reserved">
+                            {{ metrics.total_reserved }} lượt
+                        </div>
+                        <div style="font-size: 12px; color: #64748b;">Ghi nhận trên hệ thống</div>
+                    </div>
+                </div>
+
+
+                <div class="qhm-card"
+                    style="padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0; background: #ffffff; margin-bottom: 20px;">
+                    <form method="get" action="{% url 'coupons:coupon_list' %}" id="coupon-filter-form"
+                        style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+
+                        <div style="flex: 1; min-width: 220px;">
+                            <input type="text" name="q" value="{{ filters.q }}" placeholder="Tìm theo mã code..."
+                                class="qhm-form-input" id="search-code-input"
+                                style="width: 100%; height: 38px; border-radius: 6px; border: 1px solid #cbd5e1; padding: 0 12px; font-size: 13px;">
+                        </div>
+
+
+                        <div style="min-width: 180px;">
+                            <select name="type" class="qhm-form-select" id="filter-type-select"
+                                style="width: 100%; height: 38px; border-radius: 6px; border: 1px solid #cbd5e1; padding: 0 10px; font-size: 13px; background-color: #fff;">
+                                <option value="all" {% if filters.type == 'all' %}selected{% endif %}>Loại: Tất cả (Cố định & %)</option>
+                                <option value="FIXED" {% if filters.type == 'FIXED' %}selected{% endif %}>Số tiền cố định (VND)</option>
+                                <option value="PERCENT" {% if filters.type == 'PERCENT' %}selected{% endif %}>Phần trăm (%)</option>
+                            </select>
+                        </div>
+
+
+                        <div style="min-width: 160px;">
+                            <select name="status" class="qhm-form-select" id="filter-status-select"
+                                style="width: 100%; height: 38px; border-radius: 6px; border: 1px solid #cbd5e1; padding: 0 10px; font-size: 13px; background-color: #fff;">
+                                <option value="all" {% if filters.status == 'all' %}selected{% endif %}>Trạng thái: Tất cả</option>
+                                <option value="active" {% if filters.status == 'active' %}selected{% endif %}>Đang diễn ra</option>
+                                <option value="not_started" {% if filters.status == 'not_started' %}selected{% endif %}>Chưa bắt đầu</option>
+                                <option value="expired" {% if filters.status == 'expired' %}selected{% endif %}>Hết hạn</option>
+                                <option value="exhausted" {% if filters.status == 'exhausted' %}selected{% endif %}>Đã hết lượt</option>
+                                <option value="inactive" {% if filters.status == 'inactive' %}selected{% endif %}>Tạm ngưng</option>
+                            </select>
+                        </div>
+
+
+                        <div style="min-width: 180px;">
+                            <select name="scope" class="qhm-form-select" id="filter-scope-select"
+                                style="width: 100%; height: 38px; border-radius: 6px; border: 1px solid #cbd5e1; padding: 0 10px; font-size: 13px; background-color: #fff;">
+                                <option value="all" {% if filters.scope == 'all' %}selected{% endif %}>Phạm vi: Tất cả</option>
+                                <option value="all_products" {% if filters.scope == 'all_products' %}selected{% endif %}>Toàn bộ sản phẩm</option>
+                                <option value="specific_products" {% if filters.scope == 'specific_products' %}selected{% endif %}>Sản phẩm chỉ định</option>
+                            </select>
+                        </div>
+
+
+                        <div>
+                            <button type="submit" class="qhm-btn-primary" id="btn-filter-submit"
+                                style="height: 38px; padding: 0 18px; font-size: 13px; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                                </svg>
+                                <span>Lọc Voucher</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+
+                <div class="qhm-card"
+                    style="border-radius: 10px; border: 1px solid #e2e8f0; background: #ffffff; overflow: hidden; margin-bottom: 24px;">
+                    <div class="qhm-table-responsive" style="overflow-x: auto;">
+                        <table class="qhm-table" id="coupons-table"
+                            style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                            <thead>
+                                <tr
+                                    style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #475569; font-size: 12px; font-weight: 700; text-transform: uppercase;">
+                                    <th style="padding: 12px 14px;">MÃ CODE</th>
+                                    <th style="padding: 12px 14px;">LOẠI & MỨC GIẢM</th>
+                                    <th style="padding: 12px 14px;">ĐƠN TỐI THIỂU</th>
+                                    <th style="padding: 12px 14px;">THỜI GIAN HIỆU LỰC</th>
+                                    <th style="padding: 12px 14px; text-align: center;">ĐÃ DÙNG / TỔNG</th>
+                                    <th style="padding: 12px 14px; text-align: center;">ĐANG GIỮ</th>
+                                    <th style="padding: 12px 14px; text-align: center;">TRẠNG THÁI</th>
+                                    <th style="padding: 12px 14px; text-align: center;">THAO TÁC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if coupons %}
+                                {% for coupon in coupons %}
+                                <tr style="border-bottom: 1px solid #f1f5f9;" id="coupon-row-{{ coupon.id }}">
+
+                                    <td style="padding: 12px 14px;">
+                                        <a href="{% url 'coupons:coupon_edit' coupon.id %}"
+                                            style="font-weight: 700; color: #2563eb; text-decoration: none;"
+                                            id="coupon-code-link-{{ coupon.id }}">
+                                            {{ coupon.code }}
+                                        </a>
+                                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                                            {% if coupon.applies_to_all %}
+                                            <span style="color: #059669;">● Toàn bộ sản phẩm</span>
+                                            {% else %}
+                                            <span style="color: #d97706;">● Chỉ định ({{ coupon.coupon_products.count }}
+                                                SP)</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+
+
+                                    <td style="padding: 12px 14px;">
+                                        <div style="font-weight: 600; color: #0f172a;">
+                                            Giảm {{ coupon.value_display }}
+                                        </div>
+                                        {% if coupon.discount_type == 'PERCENT' and coupon.max_discount is not None %}
+                                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                                            (Tối đa {{ coupon.max_discount_display }})
+                                        </div>
+                                        {% endif %}
+                                    </td>
+
+
+                                    <td style="padding: 12px 14px; color: #334155;">
+                                        {% if coupon.min_order_amount and coupon.min_order_amount > 0 %}
+                                        {{ coupon.min_order_amount_display }}
+                                        {% else %}
+                                        <span style="color: #94a3b8;">Không yêu cầu</span>
+                                        {% endif %}
+                                    </td>
+
+
+                                    <td style="padding: 12px 14px; font-size: 12px; color: #475569;">
+                                        <div>{{ coupon.starts_at|date:"d/m/Y H:i" }}</div>
+                                        <div style="color: #94a3b8;">đến {{ coupon.ends_at|date:"d/m/Y H:i" }}</div>
+                                    </td>
+
+
+                                    <td
+                                        style="padding: 12px 14px; text-align: center; font-weight: 600; color: #0f172a;">
+                                        <span style="color: #2563eb;">{{ coupon.used_count }}</span> / {{ coupon.max_uses }}
+                                        <div style="font-size: 11px; font-weight: 400; color: #64748b;">
+                                            Còn lại: {{ coupon.remaining_uses }}
+                                        </div>
+                                    </td>
+
+
+                                    <td
+                                        style="padding: 12px 14px; text-align: center; color: #d97706; font-weight: 600;">
+                                        {{ coupon.reserved_count }} lượt
+                                    </td>
+
+
+                                    <td style="padding: 12px 14px; text-align: center;">
+                                        {% if coupon.derived_status == 'ACTIVE' %}
+                                        <span class="qhm-badge"
+                                            style="background-color: #dcfce7; color: #166534; font-size: 11px; padding: 4px 8px; border-radius: 9999px; font-weight: 600;">Đang
+                                            diễn ra</span>
+                                        {% elif coupon.derived_status == 'EXHAUSTED' %}
+                                        <span class="qhm-badge"
+                                            style="background-color: #fee2e2; color: #991b1b; font-size: 11px; padding: 4px 8px; border-radius: 9999px; font-weight: 600;">Đã
+                                            hết lượt</span>
+                                        {% elif coupon.derived_status == 'EXPIRED' %}
+                                        <span class="qhm-badge"
+                                            style="background-color: #f1f5f9; color: #475569; font-size: 11px; padding: 4px 8px; border-radius: 9999px; font-weight: 600;">Hết
+                                            hạn</span>
+                                        {% elif coupon.derived_status == 'NOT_STARTED' %}
+                                        <span class="qhm-badge"
+                                            style="background-color: #e0f2fe; color: #075985; font-size: 11px; padding: 4px 8px; border-radius: 9999px; font-weight: 600;">Chưa
+                                            bắt đầu</span>
+                                        {% elif coupon.derived_status == 'INACTIVE' %}
+                                        <span class="qhm-badge"
+                                            style="background-color: #f1f5f9; color: #64748b; font-size: 11px; padding: 4px 8px; border-radius: 9999px; font-weight: 600;">Tạm
+                                            ngưng</span>
+                                        {% endif %}
+                                    </td>
+
+
+                                    <td style="padding: 12px 14px; text-align: center;">
+                                        <a href="{% url 'coupons:coupon_edit' coupon.id %}" class="qhm-btn-link"
+                                            id="btn-edit-coupon-{{ coupon.id }}"
+                                            style="color: #2563eb; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 4px; border: 1px solid #bfdbfe; background-color: #eff6ff;">
+                                            Sửa
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" style="padding: 36px 16px; text-align: center; color: #64748b;"
+                                        id="empty-coupon-message">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8"
+                                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                            style="margin-bottom: 8px;">
+                                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                                        </svg>
+                                        <div>Chưa có mã khuyến mãi nào hoặc không tìm thấy kết quả phù hợp với bộ lọc.
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    {% if coupons %}
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; gap: 12px; font-size: 13px; color: #64748b;">
+                        <div>
+                            Hiển thị {{ coupons.start_index }} - {{ coupons.end_index }} trên tổng số {{ coupons.paginator.count }} mục
+                        </div>
+                        <div class="qhm-pagination-controls"
+                            style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                            {% if coupons.has_previous %}
+                            <a href="?page={{ coupons.previous_page_number }}{% if pagination_query %}&{{ pagination_query }}{% endif %}"
+                                class="qhm-btn-secondary"
+                                style="padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; border: 1px solid #cbd5e1; color: #334155;"
+                                id="pagination-prev">
+                                Trước
+                            </a>
+                            {% endif %}
+
+                            {% for num in elided_pages %}
+                            {% if num == coupons.paginator.ELLIPSIS %}
+                            <span style="padding: 5px 6px; color: #94a3b8; font-size: 12px;">…</span>
+                            {% elif coupons.number == num %}
+                            <span
+                                style="padding: 5px 12px; border-radius: 6px; background-color: #2563eb; color: #ffffff; font-weight: 600; font-size: 12px;">{{ num }}</span>
+                            {% else %}
+                            <a href="?page={{ num }}{% if pagination_query %}&{{ pagination_query }}{% endif %}"
+                                style="padding: 5px 12px; border-radius: 6px; border: 1px solid #cbd5e1; color: #334155; text-decoration: none; font-size: 12px;">{{ num }}</a>
+                            {% endif %}
+                            {% endfor %}
+
+                            {% if coupons.has_next %}
+                            <a href="?page={{ coupons.next_page_number }}{% if pagination_query %}&{{ pagination_query }}{% endif %}"
+                                class="qhm-btn-secondary"
+                                style="padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; border: 1px solid #cbd5e1; color: #334155;"
+                                id="pagination-next">
+                                Sau
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    {% include 'catalog/includes/shared_footer.html' %}
+
+</body>
+
+</html>

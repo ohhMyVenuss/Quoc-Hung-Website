@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý thuộc tính sản phẩm — Quốc Hùng Mobile</title>
+    <meta name="description" content="Quản lý danh sách thuộc tính và các giá trị thuộc tính biến thể trong hệ thống Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+</head>
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge="THUỘC TÍNH SẢN PHẨM" %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav='catalog_attributes' %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container">
+
+                <div class="qhm-top-nav-row">
+                    <a href="{% url 'accounts:landing' %}" class="qhm-btn-back" id="btn-back-landing">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Về Cổng tài khoản</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <span>Phân hệ Catalog</span>
+                        <span class="sep">/</span>
+                        <span class="current">Thuộc tính sản phẩm</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row">
+                    <h1 class="qhm-mgmt-title">QUẢN LÝ THUỘC TÍNH SẢN PHẨM</h1>
+                    <a href="{% url 'catalog:attribute_create' %}" class="qhm-btn-primary" id="btn-create-attribute">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Thêm thuộc tính mới</span>
+                    </a>
+                </div>
+
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="qhm-alert qhm-alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                {% if message.tags == 'error' %}
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                {% else %}
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                {% endif %}
+                            </svg>
+                            <div>{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+
+                <div class="qhm-attr-intro-card">
+                    <div class="qhm-attr-intro-text">
+                        <h3>Quản lý thuộc tính và giá trị thuộc tính</h3>
+                        <p>Định nghĩa các nhóm thuộc tính dùng chung (Màu sắc, Dung lượng, RAM...) và các giá trị chuẩn để gán cho các biến thể sản phẩm.</p>
+                    </div>
+                </div>
+
+
+                {% if attributes %}
+                    <div class="qhm-attr-grid" id="attributes-grid">
+                        {% for attr in attributes %}
+                            <div class="qhm-attr-card" id="attribute-card-{{ attr.id }}">
+                                <div class="qhm-attr-card-header">
+                                    <div class="qhm-attr-header-left">
+                                        <h2 class="qhm-attr-name" id="attr-name-{{ attr.id }}">{{ attr.name }}</h2>
+                                        <span class="qhm-attr-count-badge" id="attr-badge-{{ attr.id }}">{{ attr.values.count }} giá trị</span>
+                                    </div>
+                                    <div class="qhm-attr-card-actions">
+                                        <a href="{% url 'catalog:attribute_edit' attr.id %}" class="qhm-btn-attr-edit" id="btn-edit-attr-{{ attr.id }}" title="Chỉnh sửa tên thuộc tính {{ attr.name }}">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                            </svg>
+                                            <span>Sửa</span>
+                                        </a>
+                                        <a href="{% url 'catalog:attribute_value_create' attr.id %}" class="qhm-btn-attr-add-val" id="btn-add-val-{{ attr.id }}" title="Thêm giá trị cho thuộc tính {{ attr.name }}">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                            </svg>
+                                            <span>Thêm giá trị</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="qhm-attr-card-body">
+                                    {% if attr.values.all %}
+                                        <div class="qhm-attr-chip-wrap" id="attr-values-{{ attr.id }}">
+                                            {% for val in attr.values.all %}
+                                                <a href="{% url 'catalog:attribute_value_edit' attr.id val.id %}" class="qhm-attr-chip" id="chip-val-{{ val.id }}" title="Chỉnh sửa giá trị '{{ val.value }}'">
+                                                    <span>{{ val.value }}</span>
+                                                    <span class="qhm-attr-chip-edit-icon" aria-hidden="true">
+                                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                        </svg>
+                                                    </span>
+                                                </a>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="qhm-attr-empty-values" id="empty-values-{{ attr.id }}">
+                                            Chưa có giá trị nào cho thuộc tính này. Nhấn <strong>"Thêm giá trị"</strong> để bắt đầu tạo.
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+
+                    <div class="qhm-attr-empty-all" id="empty-attributes-state">
+                        <div class="qhm-attr-empty-all-icon" aria-hidden="true">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                            </svg>
+                        </div>
+                        <h3>Chưa có thuộc tính sản phẩm nào</h3>
+                        <p>Hệ thống chưa có định nghĩa thuộc tính nào. Hãy tạo thuộc tính đầu tiên (ví dụ: Màu sắc, Dung lượng...) để chuẩn bị cho các biến thể sản phẩm.</p>
+                        <a href="{% url 'catalog:attribute_create' %}" class="qhm-btn-primary" id="btn-empty-create-attr">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Thêm thuộc tính đầu tiên</span>
+                        </a>
+                    </div>
+                {% endif %}
+
+            </div>
+        </main>
+    </div>
+
+
+    {% include 'catalog/includes/shared_footer.html' %}
+
+</body>
+</html>

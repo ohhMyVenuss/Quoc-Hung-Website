@@ -1,0 +1,273 @@
+{% load static l10n %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} — Quốc Hùng Mobile</title>
+    <meta name="description" content="Quản trị thông tin biến thể, SKU, giá và tổ hợp thuộc tính trong hệ thống Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+</head>
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge="BIẾN THỂ SẢN PHẨM" %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav='catalog_products' %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container" style="max-width: 900px;">
+
+                <div class="qhm-top-nav-row">
+                    <a href="{% url 'catalog:product_variant_list' product.id %}" class="qhm-btn-back" id="btn-back-variants">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Danh sách biến thể</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <span>Phân hệ Catalog</span>
+                        <span class="sep">/</span>
+                        <a href="{% url 'catalog:product_list' %}" style="color: inherit; text-decoration: none;">Sản phẩm</a>
+                        <span class="sep">/</span>
+                        <a href="{% url 'catalog:product_variant_list' product.id %}" style="color: inherit; text-decoration: none;">{{ product.product_code }}</a>
+                        <span class="sep">/</span>
+                        <span class="current">{% if is_edit %}Sửa biến thể: {{ variant.sku }}{% else %}Thêm biến thể mới{% endif %}</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row">
+                    <h1 class="qhm-mgmt-title">{{ title|upper }}</h1>
+                </div>
+
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="qhm-alert qhm-alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                            <div>{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+
+                {% if form.non_field_errors %}
+                    <div class="qhm-alert qhm-alert-danger" role="alert" id="form-non-field-errors" style="margin-bottom: 24px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        <div>
+                            <strong>Lỗi quy tắc nghiệp vụ:</strong>
+                            <ul style="margin: 6px 0 0 0; padding-left: 20px;">
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+
+
+                <div class="qhm-parent-attr-display" style="margin-bottom: 24px;" id="fixed-parent-card">
+                    <div class="qhm-parent-attr-display-left">
+                        <div style="font-weight: 700; color: var(--navy-900); font-size: 14.5px;">
+                            Sản phẩm cơ sở: {{ product.name }}
+                        </div>
+                        <span class="qhm-badge qhm-badge-muted" style="font-family: ui-monospace, monospace;">
+                            {{ product.product_code }}
+                        </span>
+                        <span style="font-size: 13px; color: var(--gray-600);">
+                            Danh mục: <strong>{{ product.category.name }}</strong>
+                        </span>
+                        <span style="font-size: 13px; color: var(--gray-600);">
+                            Thương hiệu: <strong>{{ product.brand|default:"Chưa thiết lập" }}</strong>
+                        </span>
+                    </div>
+                    <div class="qhm-parent-attr-lock-note" style="color: var(--gray-500); font-size: 12px;">
+                        (Cố định theo URL — không cho phép chuyển sản phẩm cha)
+                    </div>
+                </div>
+
+
+                <div class="qhm-form-card">
+                    <div class="qhm-form-header">
+                        <h2>{% if is_edit %}CẬP NHẬT BIẾN THỂ SẢN PHẨM{% else %}THIẾT LẬP BIẾN THỂ SẢN PHẨM MỚI{% endif %}</h2>
+                        <p>Quản trị mã SKU, định giá bán, giá gốc và tổ hợp thuộc tính cho sản phẩm cơ sở</p>
+                    </div>
+
+                    <form method="post" novalidate id="variant-form">
+                        {% csrf_token %}
+
+
+                        <div class="qhm-form-group">
+                            <label for="{{ form.sku.id_for_label }}" class="qhm-form-label">
+                                Mã SKU biến thể <span class="qhm-form-req">* (Bắt buộc)</span>
+                            </label>
+                            <input type="text"
+                                   name="{{ form.sku.name }}"
+                                   id="{{ form.sku.id_for_label }}"
+                                   value="{{ form.sku.value|default:'' }}"
+                                   class="qhm-form-control {% if form.sku.errors %}is-invalid{% endif %}"
+                                   placeholder="Ví dụ: IP15PM-256-BLK"
+                                   maxlength="60"
+                                   required
+                                   autocomplete="off"
+                                   style="text-transform: uppercase;">
+                            <div class="qhm-form-help">
+                                Tối đa 60 ký tự. Hệ thống tự động chuyển thành chữ hoa. Duy nhất toàn hệ thống.
+                            </div>
+                            {% if form.sku.errors %}
+                                <div class="qhm-form-error">
+                                    {{ form.sku.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+                        <div class="qhm-form-grid-2">
+
+                            <div class="qhm-form-group">
+                                <label for="{{ form.price.id_for_label }}" class="qhm-form-label">
+                                    Giá bán hiện tại (VNĐ) <span class="qhm-form-req">* (Bắt buộc)</span>
+                                </label>
+                                <input type="number"
+                                       name="{{ form.price.name }}"
+                                       id="{{ form.price.id_for_label }}"
+                                       value="{% if form.price.value is not None and form.price.value != '' %}{{ form.price.value|unlocalize }}{% endif %}"
+                                       class="qhm-form-control {% if form.price.errors %}is-invalid{% endif %}"
+                                       placeholder="0.00"
+                                       step="0.01"
+                                       min="0"
+                                       required>
+                                <div class="qhm-form-help">
+                                    Số thập phân không âm (bước nhảy 0.01).
+                                </div>
+                                {% if form.price.errors %}
+                                    <div class="qhm-form-error">
+                                        {{ form.price.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+
+                            <div class="qhm-form-group">
+                                <label for="{{ form.original_price.id_for_label }}" class="qhm-form-label">
+                                    Giá gốc / niêm yết (VNĐ) (Tùy chọn)
+                                </label>
+                                <input type="number"
+                                       name="{{ form.original_price.name }}"
+                                       id="{{ form.original_price.id_for_label }}"
+                                       value="{% if form.original_price.value is not None and form.original_price.value != '' %}{{ form.original_price.value|unlocalize }}{% endif %}"
+                                       class="qhm-form-control {% if form.original_price.errors %}is-invalid{% endif %}"
+                                       placeholder="0.00 (tùy chọn)"
+                                       step="0.01"
+                                       min="0">
+                                <div class="qhm-form-help">
+                                    Tùy chọn. Nếu nhập, giá gốc phải lớn hơn hoặc bằng giá bán.
+                                </div>
+                                {% if form.original_price.errors %}
+                                    <div class="qhm-form-error">
+                                        {{ form.original_price.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+
+                        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--gray-200);">
+                            <div style="margin-bottom: 12px;">
+                                <h3 style="font-size: 15px; font-weight: 700; color: var(--navy-900); margin: 0 0 6px 0;">
+                                    THUỘC TÍNH BIẾN THỂ
+                                </h3>
+                                <p style="font-size: 13px; color: var(--gray-600); margin: 0; line-height: 1.5;">
+                                    Lựa chọn giá trị thuộc tính cho biến thể. Nếu để trống toàn bộ các thuộc tính, hệ thống sẽ lưu dưới dạng <strong>Biến thể mặc định không có thuộc tính</strong> (chỉ cho phép khi sản phẩm có đúng 1 biến thể duy nhất).
+                                </p>
+                            </div>
+
+                            {% if form.attribute_fields %}
+                                <div class="qhm-attribute-selector-grid">
+                                    {% for attr, bound_field in form.get_attribute_fields %}
+                                        <div class="qhm-attr-select-card" id="attr-card-{{ attr.id }}">
+                                            <label for="{{ bound_field.id_for_label }}" class="qhm-attr-select-label">
+                                                Thuộc tính: {{ attr.name }}
+                                            </label>
+                                            {{ bound_field }}
+                                            {% if bound_field.errors %}
+                                                <div class="qhm-form-error">
+                                                    {{ bound_field.errors.0 }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div style="padding: 16px; background-color: var(--gray-50); border: 1px dashed var(--gray-300); border-radius: var(--radius-md); font-size: 13px; color: var(--gray-600);">
+                                    Hệ thống chưa có thuộc tính nào được tạo sẵn trong Danh mục thuộc tính (UI-25). Biến thể này sẽ được tạo dưới dạng biến thể mặc định không thuộc tính.
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+                        <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--gray-200);">
+                            <label class="qhm-checkbox-label" style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
+                                <input type="checkbox"
+                                       name="{{ form.is_active.name }}"
+                                       id="{{ form.is_active.id_for_label }}"
+                                       class="form-checkbox"
+                                       {% if form.is_active.value %}checked{% endif %}
+                                       style="margin-top: 2px;">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--navy-900); font-size: 14px;">
+                                        Kích hoạt kinh doanh (Đang bán)
+                                    </div>
+                                    <div style="font-size: 12.5px; color: var(--gray-500); margin-top: 2px;">
+                                        Nếu bỏ chọn, biến thể sẽ chuyển sang trạng thái Tạm ngưng và không thể bán ra ngoài website.
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+
+                        <div class="qhm-variant-notice-box" style="margin-top: 24px;">
+                            <strong>Quy tắc nghiệp vụ không pha trộn:</strong> Một sản phẩm chỉ được có 1 biến thể duy nhất nếu là loại không có thuộc tính; hoặc có một hay nhiều biến thể theo thuộc tính. Không được tồn tại đồng thời biến thể có thuộc tính và không thuộc tính trong cùng một sản phẩm.
+                        </div>
+
+
+                        <div class="qhm-form-actions-row">
+                            <a href="{% url 'catalog:product_variant_list' product.id %}" class="qhm-btn-secondary" id="btn-cancel-variant">
+                                Hủy bỏ
+                            </a>
+                            <button type="submit" class="qhm-btn-primary" id="btn-save-variant">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                    <polyline points="7 3 7 8 15 8"></polyline>
+                                </svg>
+                                <span>{% if is_edit %}Lưu cập nhật biến thể{% else %}Lưu biến thể mới{% endif %}</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+
+    {% include 'catalog/includes/shared_footer.html' %}
+
+</body>
+</html>

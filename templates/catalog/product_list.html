@@ -1,0 +1,242 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sản phẩm cơ sở — Quốc Hùng Mobile</title>
+    <meta name="description" content="Danh sách sản phẩm cơ sở hệ thống Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+</head>
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge="QUẢN LÝ SẢN PHẨM" %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav='catalog_products' %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container">
+
+                <div class="qhm-top-nav-row">
+                    <a href="{% url 'accounts:landing' %}" class="qhm-btn-back" id="btn-back-landing">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Về Cổng tài khoản</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <span>Quản lý Sản phẩm</span>
+                        <span class="sep">/</span>
+                        <span class="current">Danh sách sản phẩm cơ sở</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row">
+                    <h1 class="qhm-mgmt-title">QUẢN LÝ SẢN PHẨM CƠ SỞ</h1>
+                    <a href="{% url 'catalog:product_create' %}" class="qhm-btn-primary" id="btn-create-product">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Thêm sản phẩm cơ sở</span>
+                    </a>
+                </div>
+
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="qhm-alert qhm-alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+                            <div>{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+
+                <div class="qhm-filter-bar">
+                    <form method="get" class="qhm-filter-form" id="product-filter-form">
+
+                        <div class="qhm-filter-input-search">
+                            <input type="text" name="q" value="{{ search_query }}" class="qhm-form-control" placeholder="Tìm theo tên SP, mã sản phẩm (SP0001), thương hiệu..." id="filter-search-input">
+                        </div>
+
+
+                        <div class="qhm-filter-select">
+                            <select name="category" class="qhm-form-control" id="filter-category-select">
+                                <option value="">Danh mục: Tất cả</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ cat.name }} {% if not cat.is_visible %}(Ẩn){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+
+                        <div class="qhm-filter-select">
+                            <select name="status" class="qhm-form-control" id="filter-status-select">
+                                <option value="" {% if not selected_status %}selected{% endif %}>Trạng thái: Chưa xóa mềm</option>
+                                <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Đang bán</option>
+                                <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Tạm ngưng</option>
+                                <option value="deleted" {% if selected_status == 'deleted' %}selected{% endif %}>Đã xóa mềm</option>
+                            </select>
+                        </div>
+
+
+                        <div>
+                            <button type="submit" class="qhm-btn-primary" id="btn-filter-submit" style="padding: 10px 18px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                <span>Lọc dữ liệu</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+
+                <div class="qhm-card">
+                    <div class="qhm-table-responsive">
+                        <table class="qhm-table" id="products-table">
+                            <thead>
+                                <tr>
+                                    <th class="qhm-col-thumb">ẢNH</th>
+                                    <th style="width: 120px;">MÃ SP</th>
+                                    <th>TÊN SẢN PHẨM CƠ SỞ</th>
+                                    <th>DANH MỤC</th>
+                                    <th>THƯƠNG HIỆU</th>
+                                    <th style="text-align: center; width: 140px;">TRẠNG THÁI</th>
+                                    <th style="text-align: right; width: 220px;">THAO TÁC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in products %}
+                                    <tr id="product-row-{{ p.id }}">
+
+                                        <td class="qhm-col-thumb">
+                                            {% with p.images.first as thumb %}
+                                                {% if thumb %}
+                                                    <img src="{{ thumb.image.url }}" alt="{{ p.name }}" class="qhm-table-thumb">
+                                                {% else %}
+                                                    <div class="qhm-table-thumb-placeholder" title="Chưa có ảnh">
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                                            <polyline points="21 15 16 10 5 21"></polyline>
+                                                        </svg>
+                                                    </div>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+
+
+                                        <td>
+                                            <a href="{% url 'catalog:product_detail' p.id %}" class="qhm-code-link" id="product-code-{{ p.id }}">
+                                                {{ p.product_code }}
+                                            </a>
+                                        </td>
+
+
+                                        <td>
+                                            <span class="qhm-item-name-bold">{{ p.name }}</span>
+                                        </td>
+
+
+                                        <td>
+                                            {{ p.category.name }}
+                                            {% if not p.category.is_visible %}
+                                                <small style="color: var(--red-600); display: block;">(Danh mục đang ẩn)</small>
+                                            {% endif %}
+                                        </td>
+
+
+                                        <td>
+                                            {{ p.brand|default:"—" }}
+                                        </td>
+
+
+                                        <td style="text-align: center;">
+                                            {% if p.is_deleted %}
+                                                <span class="qhm-badge qhm-badge-deleted">
+                                                    <span class="qhm-badge-dot"></span>
+                                                    Đã xóa mềm
+                                                </span>
+                                            {% elif p.is_active %}
+                                                <span class="qhm-badge qhm-badge-success">
+                                                    <span class="qhm-badge-dot"></span>
+                                                    Đang bán
+                                                </span>
+                                            {% else %}
+                                                <span class="qhm-badge qhm-badge-muted">
+                                                    <span class="qhm-badge-dot"></span>
+                                                    Tạm ngưng
+                                                </span>
+                                            {% endif %}
+                                        </td>
+
+
+                                        <td style="text-align: right;">
+                                            <div class="qhm-action-group">
+                                                {% if not p.is_deleted %}
+                                                    <a href="{% url 'catalog:product_edit' p.id %}" class="qhm-btn-table-outline-blue" id="btn-edit-prod-{{ p.id }}">
+                                                        Sửa
+                                                    </a>
+                                                    <a href="{% url 'catalog:product_variant_list' p.id %}" class="qhm-btn-table-outline-blue" id="btn-variants-prod-{{ p.id }}">
+                                                        Biến thể ({{ p.variants.count }})
+                                                    </a>
+                                                    <a href="{% url 'catalog:product_detail' p.id %}" class="qhm-btn-table-outline-blue" id="btn-images-prod-{{ p.id }}">
+                                                        Ảnh ({{ p.images.count }})
+                                                    </a>
+                                                    {% if is_admin %}
+                                                        <form method="post" action="{% url 'catalog:product_soft_delete' p.id %}" style="margin: 0; display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mềm sản phẩm {{ p.product_code }} ({{ p.name }})? Sau khi xóa mềm, sản phẩm sẽ chuyển sang chế độ chỉ đọc và bị ẩn khỏi website khách.');">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="qhm-btn-table-outline-red" id="btn-delete-prod-{{ p.id }}">
+                                                                Xóa
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <a href="{% url 'catalog:product_variant_list' p.id %}" class="qhm-btn-table-outline-gray" id="btn-variants-prod-{{ p.id }}">
+                                                        Biến thể ({{ p.variants.count }})
+                                                    </a>
+                                                    <a href="{% url 'catalog:product_detail' p.id %}" class="qhm-btn-table-outline-gray" id="btn-view-prod-{{ p.id }}">
+                                                        Xem
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" style="text-align: center; padding: 48px 20px; color: var(--gray-500);">
+                                            <p style="font-size: 15px; font-weight: 600; margin: 0 0 6px 0;">Không tìm thấy sản phẩm nào phù hợp với điều kiện tìm kiếm</p>
+                                            <p style="font-size: 13px; margin: 0;">Hãy thử điều chỉnh từ khóa tìm kiếm hoặc bộ lọc danh mục/trạng thái.</p>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    <div class="qhm-table-footer">
+                        <span>Hiển thị {{ products|length }} sản phẩm cơ sở</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    {% include 'catalog/includes/shared_footer.html' %}
+
+</body>
+</html>

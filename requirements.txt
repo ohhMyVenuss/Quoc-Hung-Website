@@ -1,0 +1,13 @@
+# ==========================================
+# CÁC THƯ VIỆN PHỤ THUỘC (DEPENDENCIES)
+# Website Thương Mại Điện Tử Quốc Hùng Mobile
+# ==========================================
+
+# Core Django framework
+Django>=5.1.0,<7.0.0
+
+# Xử lý hình ảnh sản phẩm (ImageField trong catalog)
+Pillow>=10.0.0
+
+# Dữ liệu múi giờ cho môi trường Windows (Asia/Ho_Chi_Minh)
+tzdata>=2024.1; sys_platform == 'win32'

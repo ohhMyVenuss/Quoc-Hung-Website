@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hội thoại #{{ conversation.pk }} — Quốc Hùng Mobile</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+</head>
+<body class="chat-body">
+{% include 'includes/account_navigation.html' %}
+
+<main class="chat-page">
+    <section class="chat-card" aria-labelledby="conv-title">
+        <header class="chat-card-head">
+            <div>
+                <h1 id="conv-title">{{ conversation.customer_label }}</h1>
+                <p class="chat-sub">
+                    Hội thoại #{{ conversation.pk }} — bắt đầu {{ conversation.started_at|date:'H:i d/m/Y' }}
+                    {% if conversation.assigned_staff %} — phụ trách: {{ conversation.assigned_staff.username }}{% endif %}
+                </p>
+            </div>
+            <span class="chat-status chat-status-{{ conversation.status|lower }}">{{ conversation.get_status_display }}</span>
+        </header>
+
+        {% if messages %}
+            <ul class="chat-flash" role="status">
+                {% for message in messages %}
+                    <li class="chat-flash-{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <div class="chat-thread" role="log" aria-label="Nội dung cuộc trò chuyện">
+            {% for m in chat_messages %}
+                <div class="bubble bubble-staffview-{{ m.sender_type|lower }}">
+                    <span class="bubble-who">
+                        {% if m.sender_type == 'CUSTOMER' %}Khách{% elif m.sender_type == 'BOT' %}Trợ lý tự động{% else %}Nhân viên{% if m.sender_user %} ({{ m.sender_user.username }}){% endif %}{% endif %}
+                    </span>
+                    <p>{{ m.content|linebreaksbr }}</p>
+                    <time class="bubble-time" datetime="{{ m.created_at|date:'c' }}">{{ m.created_at|date:'H:i d/m/Y' }}</time>
+                </div>
+            {% empty %}
+                <p class="chat-empty">Hội thoại chưa có tin nhắn.</p>
+            {% endfor %}
+        </div>
+
+        {% if conversation.accepts_staff_reply %}
+            <form method="post" action="{% url 'chat:staff_conversation' conversation.pk %}" class="chat-form">
+                {% csrf_token %}
+                <label for="id_content" class="visually-hidden">Nội dung phản hồi</label>
+                {{ form.content }}
+                {% for error in form.content.errors %}<p class="chat-field-error">{{ error }}</p>{% endfor %}
+                <button type="submit" class="chat-send-btn">Gửi phản hồi</button>
+            </form>
+        {% elif conversation.status == 'CLOSED' %}
+            <p class="chat-note">Hội thoại đã kết thúc, không thể gửi thêm tin nhắn.</p>
+        {% else %}
+            <p class="chat-note">Khách chưa chuyển câu hỏi cho nhân viên nên chưa thể trả lời hội thoại này.</p>
+        {% endif %}
+
+        <div class="chat-actions">
+            <a href="{% url 'chat:staff_inbox' %}" class="chat-link">Quay lại danh sách</a>
+            <a href="{% url 'chat:staff_conversation' conversation.pk %}" class="chat-link">Tải lại tin nhắn</a>
+            {% if conversation.status != 'CLOSED' %}
+                <form method="post" action="{% url 'chat:staff_close' conversation.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="chat-link-btn">Kết thúc hội thoại</button>
+                </form>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% include 'catalog/includes/shared_footer.html' %}
+</body>
+</html>

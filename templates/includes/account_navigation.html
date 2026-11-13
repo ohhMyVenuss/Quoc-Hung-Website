@@ -1,0 +1,229 @@
+{% load static %}
+
+<header class="site-header" role="banner">
+    <div class="header-top">
+
+        <a href="{% if user.is_authenticated %}{% url 'accounts:landing' %}{% else %}{% url 'accounts:login' %}{% endif %}" class="brand-logo-link" title="Quốc Hùng Mobile — TRANG CHỦ" aria-label="Quốc Hùng Mobile — TRANG CHỦ">
+            <div class="brand-icon-box">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" stroke="white" stroke-width="2.2"/>
+                    <path d="M8 7V17M16 7V17M8 12H16" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="brand-text-group">
+                <span class="brand-name">QUỐC HÙNG</span>
+                <span class="brand-sub">MOBILE</span>
+            </div>
+        </a>
+
+
+        <form method="get" action="{% url 'catalog:public_catalog' %}" class="header-search" style="margin: 0;" id="header-search-form">
+            <input type="text" name="q" class="search-input" placeholder="Tìm kiếm sản phẩm, thương hiệu..." aria-label="Tìm kiếm sản phẩm" id="header-search-input">
+            <button type="submit" class="search-btn" aria-label="Nút tìm kiếm" id="header-search-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+        </form>
+
+
+        <div class="header-actions">
+
+            {% if can_use_cart %}
+                <a href="{% url 'cart:cart_detail' %}" class="cart-widget" title="Giỏ hàng của bạn" id="header-cart-widget" aria-label="Giỏ hàng ({% if cart_item_count %}{{ cart_item_count }}{% else %}0{% endif %} sản phẩm)">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    {% if cart_item_count > 0 %}
+                        <span class="cart-badge" id="header-cart-badge">{{ cart_item_count }}</span>
+                    {% endif %}
+                </a>
+            {% else %}
+                <div class="cart-widget cart-widget-disabled" title="Giỏ hàng (Không khả dụng cho vai trò hiện tại)" aria-label="Giỏ hàng (Không khả dụng)">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                </div>
+            {% endif %}
+
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'accounts:landing' %}" class="account-widget" title="Cổng tài khoản: {{ user.username }}" id="header-account-widget">
+                    <div class="account-widget-text">
+                        <span class="account-widget-name">{{ user.username }}</span>
+                        <span class="account-widget-role">
+                            {% if is_customer %}Khách hàng{% elif is_admin %}Quản trị viên{% elif is_sales_staff %}NV Bán hàng{% elif is_inventory_staff %}NV Kho{% else %}Thành viên{% endif %}
+                        </span>
+                    </div>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="account-widget" title="Đăng nhập / Đăng ký tài khoản" id="header-account-widget">
+                    <span>Đăng nhập / Đăng ký</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <nav class="category-nav role-nav-bar" aria-label="Menu điều hướng hệ thống">
+        <div class="category-nav-inner role-nav-inner">
+            <div class="role-nav-left">
+
+                <a href="{% url 'catalog:public_catalog' %}" class="nav-item {% if active_nav == 'public_catalog' %}active{% endif %}" id="nav-link-products" {% if active_nav == 'public_catalog' %}aria-current="page"{% endif %}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;" aria-hidden="true">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    SẢN PHẨM
+                </a>
+
+                {% if user.is_authenticated %}
+
+                    <a href="{% url 'accounts:landing' %}" class="nav-item {% if active_nav == 'landing' %}active{% endif %}" id="nav-link-landing" {% if active_nav == 'landing' %}aria-current="page"{% endif %}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;" aria-hidden="true">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        CỔNG TÀI KHOẢN
+                    </a>
+
+
+                    {% if is_customer %}
+                        <a href="{% url 'accounts:profile' %}" class="nav-item {% if active_nav == 'profile' or active_nav == 'profile_edit' %}active{% endif %}" id="nav-link-profile" {% if active_nav == 'profile' or active_nav == 'profile_edit' %}aria-current="page"{% endif %}>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;" aria-hidden="true">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            HỒ SƠ CỦA TÔI
+                        </a>
+                    {% endif %}
+
+
+                    {% if is_sales_staff %}
+                        <a href="{% url 'catalog:category_list' %}" class="nav-item {% if active_nav == 'catalog_categories' %}active{% endif %}" id="nav-link-categories" {% if active_nav == 'catalog_categories' %}aria-current="page"{% endif %}>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;" aria-hidden="true">
+                                <line x1="8" y1="6" x2="21" y2="6"></line>
+                                <line x1="8" y1="12" x2="21" y2="12"></line>
+                                <line x1="8" y1="18" x2="21" y2="18"></line>
+                                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                            </svg>
+                            QUẢN LÝ DANH MỤC
+                        </a>
+                        <a href="{% url 'catalog:product_list' %}" class="nav-item {% if active_nav == 'catalog_products' %}active{% endif %}" id="nav-link-manage-products" {% if active_nav == 'catalog_products' %}aria-current="page"{% endif %}>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;" aria-hidden="true">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <path d="M16 10a4 4 0 0 1-8 0"></path>
+                            </svg>
+                            QUẢN LÝ SẢN PHẨM
+                        </a>
+                        <a href="{% url 'chat:staff_inbox' %}" class="nav-item {% if active_nav == 'chat_staff' %}active{% endif %}" id="nav-link-chat-staff" {% if active_nav == 'chat_staff' %}aria-current="page"{% endif %}>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;" aria-hidden="true">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            TIN NHẮN KHÁCH
+                        </a>
+                    {% endif %}
+
+
+                    {% if is_admin %}
+                        <a href="{% url 'accounts:staff_list' %}" class="nav-item {% if active_nav == 'staff' %}active{% endif %}" id="nav-link-staff" {% if active_nav == 'staff' %}aria-current="page"{% endif %}>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;" aria-hidden="true">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            QUẢN LÝ NHÂN VIÊN
+                        </a>
+                        <a href="{% url 'coupons:coupon_list' %}" class="nav-item {% if active_nav == 'coupons' %}active{% endif %}" id="nav-link-coupons" {% if active_nav == 'coupons' %}aria-current="page"{% endif %}>
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;" aria-hidden="true">
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                            </svg>
+                            QUẢN LÝ VOUCHER
+                        </a>
+                    {% endif %}
+
+
+                    {% if can_access_django_admin %}
+                        <a href="{% url 'admin:index' %}" class="nav-item nav-item-admin" id="nav-link-admin" target="_blank" rel="noopener" title="Mở trang quản trị Django Admin trong tab mới">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;" aria-hidden="true">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            TRANG QUẢN TRỊ (ADMIN)
+                        </a>
+                    {% endif %}
+                {% else %}
+
+                    <a href="{% url 'accounts:login' %}" class="nav-item {% if active_nav == 'login' %}active{% endif %}" id="nav-link-login" {% if active_nav == 'login' %}aria-current="page"{% endif %}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;" aria-hidden="true">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                            <polyline points="10 17 15 12 10 7"></polyline>
+                            <line x1="15" y1="12" x2="3" y2="12"></line>
+                        </svg>
+                        ĐĂNG NHẬP
+                    </a>
+                    <a href="{% url 'accounts:register' %}" class="nav-item {% if active_nav == 'register' %}active{% endif %}" id="nav-link-register" {% if active_nav == 'register' %}aria-current="page"{% endif %}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;" aria-hidden="true">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                            <line x1="23" y1="11" x2="17" y2="11"></line>
+                        </svg>
+                        ĐĂNG KÝ TÀI KHOẢN
+                    </a>
+                {% endif %}
+            </div>
+
+
+            <div class="role-nav-right">
+                {% if user.is_authenticated %}
+
+                    <div class="nav-role-badges-group">
+                        {% if is_admin %}
+                            <span class="role-badge role-badge-admin" title="Vai trò Quản trị viên (Admin)">Quản trị viên</span>
+                        {% elif is_sales_staff %}
+                            <span class="role-badge role-badge-sales" title="Vai trò Nhân viên bán hàng (Sales Staff)">Nhân viên bán hàng</span>
+                        {% elif is_inventory_staff %}
+                            <span class="role-badge role-badge-inventory" title="Vai trò Nhân viên kho (Inventory Staff)">Nhân viên kho</span>
+                        {% elif is_customer %}
+                            <span class="role-badge role-badge-customer" title="Vai trò Khách hàng (Customer)">Khách hàng</span>
+                        {% endif %}
+                    </div>
+
+
+                    <form method="post" action="{% url 'accounts:logout' %}" class="nav-logout-form" style="margin: 0; display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-item nav-item-logout" id="nav-logout-btn" title="Đăng xuất khỏi hệ thống (POST + CSRF)">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -2px;" aria-hidden="true">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            <span>ĐĂNG XUẤT</span>
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+</header>

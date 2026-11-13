@@ -1,0 +1,220 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quốc Hùng Mobile — Thiết bị di động &amp; Công nghệ chính hãng</title>
+    <meta name="description" content="Hệ thống bán lẻ thiết bị di động, laptop, máy tính bảng và phụ kiện công nghệ chính hãng tại Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+</head>
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/public_header.html' %}
+
+
+    <main class="qhm-pub-main qhm-home-main" role="main">
+
+
+        <section class="qhm-home-hero" aria-label="Giới thiệu cửa hàng">
+            <div class="qhm-home-hero-content">
+                <span class="qhm-home-hero-tag">
+                    QUỐC HÙNG MOBILE &bull; CÔNG NGHỆ CHÍNH HÃNG
+                </span>
+                <h1 class="qhm-home-hero-title">
+                    HỆ THỐNG BÁN LẺ THIẾT BỊ DI ĐỘNG &amp; CÔNG NGHỆ CHÍNH HÃNG
+                </h1>
+                <p class="qhm-home-hero-desc">
+                    Khám phá các dòng điện thoại thông minh, máy tính bảng, thiết bị âm thanh và phụ kiện công nghệ chính hãng với thông tin minh bạch và trải nghiệm mua sắm trực quan.
+                </p>
+                <div class="qhm-home-hero-actions">
+                    <a href="{% url 'catalog:public_catalog' %}" class="qhm-hero-cta-btn" id="hero-btn-explore">
+                        <span>Khám phá sản phẩm</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </a>
+                    {% if categories %}
+                        <a href="#home-categories-section" class="qhm-hero-secondary-btn" id="hero-btn-categories">
+                            <span>Xem danh mục thiết bị</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="qhm-home-hero-visual" aria-hidden="true">
+                <div class="qhm-hero-device-card">
+                    <div class="qhm-hero-device-icon">
+                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                        </svg>
+                    </div>
+                    <div class="qhm-hero-device-info">
+                        <div class="qhm-hero-device-title">THIẾT BỊ CHÍNH HÃNG</div>
+                        <div class="qhm-hero-device-sub">Nguồn gốc rõ ràng &bull; Thông tin minh bạch</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section class="qhm-home-trust-strip" aria-label="Điểm nổi bật dịch vụ">
+            <div class="qhm-trust-item">
+                <div class="qhm-trust-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                </div>
+                <div class="qhm-trust-text">
+                    <strong>Sản phẩm chính hãng</strong>
+                    <span>Thiết bị công nghệ nguồn gốc rõ ràng</span>
+                </div>
+            </div>
+            <div class="qhm-trust-item">
+                <div class="qhm-trust-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 14 14"></polyline>
+                    </svg>
+                </div>
+                <div class="qhm-trust-text">
+                    <strong>Thông tin minh bạch</strong>
+                    <span>Thông số kỹ thuật và giá niêm yết rõ ràng</span>
+                </div>
+            </div>
+            <div class="qhm-trust-item">
+                <div class="qhm-trust-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    </svg>
+                </div>
+                <div class="qhm-trust-text">
+                    <strong>Tư vấn tận tâm</strong>
+                    <span>Hỗ trợ kỹ thuật và thông tin sản phẩm chu đáo</span>
+                </div>
+            </div>
+        </section>
+
+
+        {% if categories %}
+            <section class="qhm-home-cat-section" id="home-categories-section" aria-label="Danh mục thiết bị">
+                <div class="qhm-section-header">
+                    <div>
+                        <h2 class="qhm-section-title">DANH MỤC THIẾT BỊ NỔI BẬT</h2>
+                        <p class="qhm-section-sub">Lựa chọn nhanh dòng sản phẩm theo nhu cầu công nghệ của bạn</p>
+                    </div>
+                    <a href="{% url 'catalog:public_catalog' %}" class="qhm-section-link" id="link-view-all-cats">
+                        <span>Tất cả danh mục &rsaquo;</span>
+                    </a>
+                </div>
+
+                <div class="qhm-home-cat-grid">
+                    {% for cat in categories %}
+                        <a href="{% url 'catalog:public_category' cat.id %}" class="qhm-home-cat-card" id="home-cat-card-{{ cat.id }}">
+                            <div class="qhm-home-cat-icon" aria-hidden="true">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                                    <line x1="9" y1="9" x2="15" y2="9"></line>
+                                    <line x1="9" y1="13" x2="15" y2="13"></line>
+                                    <line x1="9" y1="17" x2="13" y2="17"></line>
+                                </svg>
+                            </div>
+                            <div class="qhm-home-cat-name">{{ cat.name }}</div>
+                            <div class="qhm-home-cat-action">
+                                <span>Khám phá &rsaquo;</span>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+
+        <section class="qhm-home-products-section" id="home-products-section" aria-label="Sản phẩm nổi bật">
+            <div class="qhm-section-header">
+                <div>
+                    <h2 class="qhm-section-title">SẢN PHẨM NỔI BẬT</h2>
+                    <p class="qhm-section-sub">Khám phá các sản phẩm đang được giới thiệu tại Quốc Hùng Mobile</p>
+                </div>
+                <a href="{% url 'catalog:public_catalog' %}" class="qhm-section-link" id="home-link-view-all">
+                    <span>Xem tất cả sản phẩm &rsaquo;</span>
+                </a>
+            </div>
+
+            {% if products %}
+                <div class="qhm-pub-grid" id="home-product-grid">
+                    {% for p in products %}
+                        <article class="qhm-product-card" id="product-card-{{ p.id }}">
+
+                            <a href="{% url 'catalog:public_product_detail' p.id %}" class="qhm-card-thumb-wrap" title="{{ p.name }}">
+                                {% with p.images.first as thumb %}
+                                    {% if thumb %}
+                                        <img src="{{ thumb.image.url }}" alt="{{ p.name }}" loading="lazy" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2394a3b8\' stroke-width=\'1.5\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><path d=\'M21 15l-5-5L5 21\'/></svg>';">
+                                    {% else %}
+                                        <div style="text-align: center; color: var(--gray-400);">
+                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                                <polyline points="21 15 16 10 5 21"></polyline>
+                                            </svg>
+                                            <div style="font-size: 11.5px; font-weight: 500; margin-top: 4px;">Hình ảnh đang cập nhật</div>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+
+                                {% if p.brand %}
+                                    <span class="qhm-card-brand-badge">{{ p.brand }}</span>
+                                {% endif %}
+                            </a>
+
+
+                            <div class="qhm-card-cat-code">
+                                <span class="qhm-card-cat-name">{{ p.category.name }}</span>
+                            </div>
+
+
+                            <h3 class="qhm-card-name" title="{{ p.name }}">
+                                {{ p.name }}
+                            </h3>
+
+
+                            <div class="qhm-customer-notice-box">
+                                {% if p.has_active_variants %}
+                                    <span class="qhm-has-variants-notice">Xem phiên bản và giá bán</span>
+                                {% else %}
+                                    {{ customer_notice }}
+                                {% endif %}
+                            </div>
+
+
+                            <a href="{% url 'catalog:public_product_detail' p.id %}" class="qhm-btn-view-detail" id="btn-view-prod-{{ p.id }}">
+                                Xem chi tiết
+                            </a>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+
+                <div class="qhm-home-empty-box">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px; color: var(--gray-400);">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <h3 style="font-size: 16px; font-weight: 700; color: var(--navy-950); margin: 0 0 6px 0;">Hiện chưa có sản phẩm công khai</h3>
+                    <p style="font-size: 13.5px; margin: 0 0 16px 0; color: var(--gray-500);">Hệ thống đang trong quá trình cập nhật các dòng thiết bị mới. Vui lòng quay lại sau.</p>
+                    <a href="{% url 'catalog:public_catalog' %}" class="qhm-btn-primary" style="display: inline-flex;" id="btn-empty-catalog">
+                        Xem danh mục sản phẩm
+                    </a>
+                </div>
+            {% endif %}
+        </section>
+
+    </main>
+
+
+    {% include 'catalog/includes/shared_footer.html' %}
+
+</body>
+</html>

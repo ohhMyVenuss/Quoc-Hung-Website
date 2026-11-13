@@ -1,0 +1,255 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|default:"Xác minh thanh toán chuyển khoản QR — Quốc Hùng Mobile" }}</title>
+    <meta name="description"
+        content="Danh sách các khoản thanh toán chuyển khoản QR chờ nhân viên đối soát và xác minh.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+    <link rel="stylesheet" href="{% static 'css/orders.css' %}">
+</head>
+
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge="THANH TOÁN" %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav='payment_verification' %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container" style="max-width: 1200px; margin: 0 auto; padding: 24px 16px;">
+
+
+                <div class="qhm-top-nav-row" style="margin-bottom: 20px;">
+                    <a href="{% url 'accounts:landing' %}" class="qhm-btn-back" id="btn-back-landing">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Về Cổng tài khoản</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <span>Quản lý Bán hàng</span>
+                        <span class="sep">/</span>
+                        <span class="current">Xác minh thanh toán QR</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row" style="margin-bottom: 24px;">
+                    <div>
+                        <h1 class="qhm-mgmt-title"
+                            style="margin: 0; font-size: 22px; font-weight: 700; color: var(--navy-900);">
+                            DANH SÁCH THANH TOÁN QR CHỜ XÁC MINH
+                        </h1>
+                        <p style="margin: 6px 0 0; font-size: 13.5px; color: var(--gray-600);">
+                            Đối chiếu sao kê/sổ phụ ngân hàng thực tế và xác nhận thanh toán cho đơn hàng (SRS VII,
+                            BR-PAY-03..08).
+                        </p>
+                    </div>
+                </div>
+
+
+                {% if messages %}
+                <div class="qhm-messages-container" style="margin-bottom: 20px;">
+                    {% for message in messages %}
+                    <div class="qhm-alert qhm-alert-{{ message.tags|default:'info' }}" role="alert"
+                        style="padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; font-size: 13.5px;">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+
+                <div class="qhm-tabs-bar"
+                    style="display: flex; gap: 8px; border-bottom: 2px solid var(--gray-200); margin-bottom: 20px; overflow-x: auto; padding-bottom: 2px;">
+                    <a href="?status=PENDING_VERIFY{% if search_q %}&q={{ search_q }}{% endif %}"
+                        class="qhm-tab-link {% if status_tab == 'PENDING_VERIFY' %}active{% endif %}"
+                        style="padding: 10px 16px; font-size: 13.5px; font-weight: 600; text-decoration: none; border-bottom: 2px solid {% if status_tab == 'PENDING_VERIFY' %}var(--blue-600){% else %}transparent{% endif %}; color: {% if status_tab == 'PENDING_VERIFY' %}var(--blue-600){% else %}var(--gray-600){% endif %}; white-space: nowrap;">
+                        Chờ xác minh ({{ count_pending }})
+                    </a>
+                    <a href="?status=UNPAID{% if search_q %}&q={{ search_q }}{% endif %}"
+                        class="qhm-tab-link {% if status_tab == 'UNPAID' %}active{% endif %}"
+                        style="padding: 10px 16px; font-size: 13.5px; font-weight: 600; text-decoration: none; border-bottom: 2px solid {% if status_tab == 'UNPAID' %}var(--blue-600){% else %}transparent{% endif %}; color: {% if status_tab == 'UNPAID' %}var(--blue-600){% else %}var(--gray-600){% endif %}; white-space: nowrap;">
+                        Chưa thanh toán ({{ count_unpaid }})
+                    </a>
+                    <a href="?status=PAID{% if search_q %}&q={{ search_q }}{% endif %}"
+                        class="qhm-tab-link {% if status_tab == 'PAID' %}active{% endif %}"
+                        style="padding: 10px 16px; font-size: 13.5px; font-weight: 600; text-decoration: none; border-bottom: 2px solid {% if status_tab == 'PAID' %}var(--blue-600){% else %}transparent{% endif %}; color: {% if status_tab == 'PAID' %}var(--blue-600){% else %}var(--gray-600){% endif %}; white-space: nowrap;">
+                        Đã thanh toán ({{ count_paid }})
+                    </a>
+                    <a href="?status=all{% if search_q %}&q={{ search_q }}{% endif %}"
+                        class="qhm-tab-link {% if status_tab == 'all' %}active{% endif %}"
+                        style="padding: 10px 16px; font-size: 13.5px; font-weight: 600; text-decoration: none; border-bottom: 2px solid {% if status_tab == 'all' %}var(--blue-600){% else %}transparent{% endif %}; color: {% if status_tab == 'all' %}var(--blue-600){% else %}var(--gray-600){% endif %}; white-space: nowrap;">
+                        Tất cả QR ({{ count_all }})
+                    </a>
+                    <a href="{% url 'payments:reconciliation_list' %}"
+                       class="qhm-tab-link"
+                       style="padding: 10px 16px; font-size: 13.5px; font-weight: 600; text-decoration: none; border-bottom: 2px solid transparent; color: #b45309; white-space: nowrap; margin-left: auto;"
+                       id="tab-link-reconciliation">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        Hồ sơ đối soát ({{ count_reconciliation_open }})
+                    </a>
+                </div>
+
+
+                <div class="qhm-filter-bar"
+                    style="background: white; border: 1px solid var(--gray-200); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;">
+                    <form method="get" action="" style="display: flex; gap: 10px; flex-wrap: wrap; margin: 0;">
+                        <input type="hidden" name="status" value="{{ status_tab }}">
+                        <div style="flex: 1; min-width: 250px;">
+                            <input type="text" name="q" value="{{ search_q }}"
+                                placeholder="Tìm theo mã đơn, mã QR, tên hoặc số điện thoại..." class="qhm-form-input"
+                                style="width: 100%; padding: 8px 12px; font-size: 13.5px; border: 1px solid var(--gray-300); border-radius: 6px;">
+                        </div>
+                        <button type="submit" class="qhm-btn-primary"
+                            style="padding: 8px 18px; font-size: 13.5px; font-weight: 600; border-radius: 6px; cursor: pointer;">
+                            Tìm kiếm
+                        </button>
+                        {% if search_q %}
+                        <a href="?status={{ status_tab }}" class="qhm-btn-secondary"
+                            style="padding: 8px 14px; font-size: 13.5px; text-decoration: none; border-radius: 6px; display: inline-flex; align-items: center;">
+                            Xóa tìm kiếm
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
+
+
+                <div class="qhm-table-card"
+                    style="background: white; border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="overflow-x: auto;">
+                        <table id="verification-table" class="qhm-data-table"
+                            style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px;">
+                            <thead>
+                                <tr style="background-color: var(--gray-50); border-bottom: 2px solid var(--gray-200);">
+                                    <th style="padding: 12px 16px; font-weight: 600; color: var(--navy-900);">Mã Đơn
+                                        hàng</th>
+                                    <th style="padding: 12px 16px; font-weight: 600; color: var(--navy-900);">Khách hàng
+                                    </th>
+                                    <th style="padding: 12px 16px; font-weight: 600; color: var(--navy-900);">Số tiền
+                                        cần thu</th>
+                                    <th style="padding: 12px 16px; font-weight: 600; color: var(--navy-900);">Mã tham
+                                        chiếu QR</th>
+                                    <th style="padding: 12px 16px; font-weight: 600; color: var(--navy-900);">Khách báo
+                                        CK</th>
+                                    <th style="padding: 12px 16px; font-weight: 600; color: var(--navy-900);">Trạng thái
+                                    </th>
+                                    <th
+                                        style="padding: 12px 16px; font-weight: 600; color: var(--navy-900); text-align: right;">
+                                        Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in page_obj %}
+                                <tr style="border-bottom: 1px solid var(--gray-200);">
+                                    <td style="padding: 14px 16px;">
+                                        <a href="{% url 'payments:verify_payment' payment.pk %}"
+                                            style="font-weight: 700; color: var(--blue-600); text-decoration: none;"
+                                            id="order-link-{{ payment.order.order_code }}">
+                                            #{{ payment.order.order_code }}
+                                        </a>
+                                        <div style="font-size: 12px; color: var(--gray-500); margin-top: 3px;">
+                                            {{ payment.order.created_at|date:"H:i:s d/m/Y" }}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        <div style="font-weight: 600; color: var(--navy-900);">{{ payment.order.recipient_name }}</div>
+                                        <div style="font-size: 12.5px; color: var(--gray-600);">{{ payment.order.recipient_phone }}</div>
+                                    </td>
+                                    <td style="padding: 14px 16px; font-weight: 700; color: var(--blue-700);">
+                                        {{ payment.expected_amount_formatted }}
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        <code
+                                            style="background: var(--gray-100); padding: 3px 6px; border-radius: 4px; font-size: 12.5px; font-weight: 600; color: var(--navy-900);">
+                                            {{ payment.qr_reference|default:payment.order.order_code }}
+                                        </code>
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        {% if payment.customer_notified_at %}
+                                        <span class="qhm-badge"
+                                            style="background-color: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 4px; font-size: 11.5px; font-weight: 600; display: inline-block;">
+                                            Đã báo: {{ payment.customer_notified_at|date:"H:i d/m" }}
+                                        </span>
+                                        {% else %}
+                                        <span class="qhm-badge"
+                                            style="background-color: var(--gray-100); color: var(--gray-600); padding: 4px 8px; border-radius: 4px; font-size: 11.5px; font-weight: 500;">
+                                            Chưa bấm báo
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        {% if payment.status == 'PENDING_VERIFY' %}
+                                        <span class="qhm-badge"
+                                            style="background-color: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-size: 11.5px; font-weight: 600;">
+                                            Chờ xác minh
+                                        </span>
+                                        {% elif payment.status == 'PAID' %}
+                                        <span class="qhm-badge"
+                                            style="background-color: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-size: 11.5px; font-weight: 600;">
+                                            Đã thanh toán
+                                        </span>
+                                        {% else %}
+                                        <span class="qhm-badge"
+                                            style="background-color: var(--gray-100); color: var(--gray-700); padding: 4px 8px; border-radius: 4px; font-size: 11.5px; font-weight: 600;">
+                                            {{ payment.get_status_display }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 14px 16px; text-align: right;">
+                                        <a href="{% url 'payments:verify_payment' payment.pk %}" class="qhm-btn-primary"
+                                            style="padding: 6px 14px; font-size: 12.5px; font-weight: 600; border-radius: 6px; text-decoration: none; display: inline-block;"
+                                            id="btn-verify-{{ payment.order.order_code }}">
+                                            {% if payment.status == 'PAID' %}Xem chi tiết{% else %}Xác minh &rarr;{% endif %}
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7"
+                                        style="padding: 36px 16px; text-align: center; color: var(--gray-500);">
+                                        Không tìm thấy khoản thanh toán QR nào phù hợp với bộ lọc hiện tại.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    {% if page_obj.has_other_pages %}
+                    <div
+                        style="padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--gray-200); background-color: var(--gray-50); font-size: 13px;">
+                        <span>Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                        <div style="display: flex; gap: 6px;">
+                            {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}&status={{ status_tab }}{% if search_q %}&q={{ search_q }}{% endif %}"
+                                style="padding: 4px 10px; border: 1px solid var(--gray-300); border-radius: 4px; text-decoration: none; color: var(--navy-900);">Trước</a>
+                            {% endif %}
+                            {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}&status={{ status_tab }}{% if search_q %}&q={{ search_q }}{% endif %}"
+                                style="padding: 4px 10px; border: 1px solid var(--gray-300); border-radius: 4px; text-decoration: none; color: var(--navy-900);">Tiếp</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+</body>
+
+</html>

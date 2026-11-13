@@ -1,0 +1,199 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} — Quốc Hùng Mobile</title>
+    <meta name="description" content="{{ title }} trong hệ thống bán hàng Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+</head>
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge="QUẢN LÝ SẢN PHẨM" %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav='catalog_products' %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container">
+
+                <div class="qhm-top-nav-row">
+                    <a href="{% url 'catalog:product_list' %}" class="qhm-btn-back" id="btn-back-products">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Quay lại Sản phẩm</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <a href="{% url 'catalog:product_list' %}">Quản lý Sản phẩm</a>
+                        <span class="sep">/</span>
+                        <span class="current">{{ title }}</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row">
+                    <h1 class="qhm-mgmt-title">{{ title|upper }}</h1>
+                </div>
+
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="qhm-alert qhm-alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+                            <div>{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if form.non_field_errors %}
+                    <div class="qhm-alert qhm-alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+
+                <div class="qhm-form-card">
+                    <div class="qhm-form-header">
+                        <h2>THÔNG TIN CƠ BẢN CỦA SẢN PHẨM</h2>
+                        <p>Nhập các thông tin cơ sở phục vụ nhận diện thiết bị và quản lý phân loại</p>
+                    </div>
+
+                    <form method="post" novalidate id="product-form">
+                        {% csrf_token %}
+
+
+                        <div class="qhm-form-grid-2">
+
+                            <div class="qhm-form-group">
+                                <label class="qhm-form-label">
+                                    Mã sản phẩm (Chỉ đọc - Tự động):
+                                </label>
+                                <input type="text" class="qhm-form-control" value="{% if product %}{{ product.product_code }}{% else %}Tự động sau khi lưu{% endif %}" readonly disabled style="font-family: ui-monospace, monospace; font-weight: 700; color: var(--blue-700);">
+                                <div class="qhm-form-help">
+                                    Định dạng mã duy nhất <code>SP{id:04d}</code> được hệ thống cấp phát tự động dựa trên khóa chính bản ghi.
+                                </div>
+                            </div>
+
+
+                            <div class="qhm-form-group">
+                                <label for="{{ form.name.id_for_label }}" class="qhm-form-label">
+                                    Tên sản phẩm cơ sở: <span class="qhm-form-req">* (Bắt buộc)</span>
+                                </label>
+                                <input type="text" name="name" id="{{ form.name.id_for_label }}" value="{{ form.name.value|default:'' }}" class="qhm-form-control" maxlength="150" placeholder="Ví dụ: iPhone 16 Pro Max, Dell XPS 13 Plus..." required autocomplete="off">
+                                {% if form.name.errors %}
+                                    <div class="qhm-form-error">
+                                        {% for err in form.name.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+
+                        <div class="qhm-form-grid-2">
+
+                            <div class="qhm-form-group">
+                                <label for="{{ form.category.id_for_label }}" class="qhm-form-label">
+                                    Danh mục sản phẩm: <span class="qhm-form-req">*</span>
+                                </label>
+                                <select name="category" id="{{ form.category.id_for_label }}" class="qhm-form-control" required>
+                                    <option value="">-- Chọn danh mục sản phẩm --</option>
+                                    {% for cat in form.fields.category.queryset %}
+                                        <option value="{{ cat.id }}" {% if form.category.value|stringformat:"s" == cat.id|stringformat:"s" %}selected{% endif %}>
+                                            {{ cat.name }} {% if not cat.is_visible %}(Đang ẩn){% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                {% if form.category.errors %}
+                                    <div class="qhm-form-error">
+                                        {% for err in form.category.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+
+                            <div class="qhm-form-group">
+                                <label for="{{ form.brand.id_for_label }}" class="qhm-form-label">
+                                    Thương hiệu: (Tùy chọn)
+                                </label>
+                                <input type="text" name="brand" id="{{ form.brand.id_for_label }}" value="{{ form.brand.value|default:'' }}" class="qhm-form-control" maxlength="100" placeholder="Ví dụ: Apple, Samsung, Dell, Asus..." autocomplete="off">
+                                <div class="qhm-form-help">
+                                    Nhập tên hãng sản xuất để hỗ trợ khách hàng tìm kiếm và lọc sản phẩm.
+                                </div>
+                                {% if form.brand.errors %}
+                                    <div class="qhm-form-error">
+                                        {% for err in form.brand.errors %}{{ err }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+
+                        <div class="qhm-form-group">
+                            <label for="{{ form.description.id_for_label }}" class="qhm-form-label">
+                                Mô tả sản phẩm (Tùy chọn):
+                            </label>
+                            <textarea name="description" id="{{ form.description.id_for_label }}" class="qhm-form-control" rows="5" placeholder="Nhập mô tả tóm tắt đặc điểm, thông số kỹ thuật và điểm nổi bật của thiết bị...">{{ form.description.value|default:'' }}</textarea>
+                            <div class="qhm-form-help">
+                                Hỗ trợ văn bản thuần, hệ thống tự động bảo toàn các dấu xuống dòng khi hiển thị cho khách hàng.
+                            </div>
+                            {% if form.description.errors %}
+                                <div class="qhm-form-error">
+                                    {% for err in form.description.errors %}{{ err }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+                        <div class="qhm-form-group">
+                            <label class="qhm-form-label" style="margin-bottom: 8px;">
+                                Trạng thái kinh doanh sản phẩm: <span class="qhm-form-req">*</span>
+                            </label>
+                            <div class="qhm-radio-group">
+                                <label class="qhm-radio-label">
+                                    <input type="radio" name="is_active" value="True" {% if form.is_active.value %}checked{% endif %} id="radio-active-true">
+                                    <span>Đang hoạt động kinh doanh (Sẵn sàng bán ra khi danh mục hiển thị)</span>
+                                </label>
+                                <label class="qhm-radio-label">
+                                    <input type="radio" name="is_active" value="False" {% if not form.is_active.value %}checked{% endif %} id="radio-active-false">
+                                    <span>Tạm ngừng kinh doanh</span>
+                                </label>
+                            </div>
+                            {% if form.is_active.errors %}
+                                <div class="qhm-form-error">
+                                    {% for err in form.is_active.errors %}{{ err }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+                        <div class="qhm-form-actions-row">
+                            <a href="{% url 'catalog:product_list' %}" class="qhm-btn-secondary" id="btn-cancel-prod">
+                                Hủy bỏ
+                            </a>
+                            <button type="submit" name="submit_action" value="save" class="qhm-btn-secondary" id="btn-save-prod" style="border-color: var(--blue-600); color: var(--blue-700);">
+                                Lưu &amp; Về danh sách
+                            </button>
+                            <button type="submit" name="submit_action" value="save_and_upload" class="qhm-btn-primary" id="btn-save-and-upload">
+                                <span>Lưu &amp; Tiếp tục tải ảnh &rarr;</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    {% include 'catalog/includes/shared_footer.html' %}
+
+</body>
+</html>

@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hỗ trợ khách hàng — Quốc Hùng Mobile</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+</head>
+<body class="chat-body">
+{% include 'includes/account_navigation.html' %}
+
+<main class="chat-page">
+    <section class="chat-card" aria-labelledby="chat-title">
+        <header class="chat-card-head">
+            <div>
+                <h1 id="chat-title">Hỗ trợ khách hàng</h1>
+                <p class="chat-sub">Chọn một câu hỏi thường gặp hoặc nhắn cho nhân viên Quốc Hùng Mobile.</p>
+            </div>
+            <span class="chat-status chat-status-{% if conversation %}{{ conversation.status|lower }}{% else %}bot{% endif %}">
+                {% if conversation %}{{ conversation.get_status_display }}{% else %}Trả lời tự động{% endif %}
+            </span>
+        </header>
+
+        {% if messages %}
+            <ul class="chat-flash" role="status">
+                {% for message in messages %}
+                    <li class="chat-flash-{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <div class="chat-thread" role="log" aria-live="polite" aria-label="Nội dung cuộc trò chuyện">
+            {% if not conversation %}
+                <div class="bubble bubble-bot">
+                    <span class="bubble-who">Trợ lý tự động</span>
+                    <p>Xin chào! Bạn cần hỗ trợ về vấn đề gì? Hãy chọn một câu hỏi bên dưới hoặc nhập câu hỏi của bạn.</p>
+                </div>
+            {% endif %}
+            {% for m in chat_messages %}
+                <div class="bubble bubble-{{ m.sender_type|lower }}">
+                    <span class="bubble-who">
+                        {% if m.sender_type == 'CUSTOMER' %}Bạn{% elif m.sender_type == 'BOT' %}Trợ lý tự động{% else %}Nhân viên{% endif %}
+                    </span>
+                    <p>{{ m.content|linebreaksbr }}</p>
+                    <time class="bubble-time" datetime="{{ m.created_at|date:'c' }}">{{ m.created_at|date:'H:i d/m/Y' }}</time>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if show_faqs and faqs %}
+            <section class="chat-faq" aria-labelledby="faq-title">
+                <h2 id="faq-title">Câu hỏi thường gặp</h2>
+                <div class="chat-faq-list">
+                    {% for faq in faqs %}
+                        <form method="post" action="{% url 'chat:ask_faq' faq.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="chat-faq-btn">{{ faq.question }}</button>
+                        </form>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if conversation and conversation.status == 'WAITING_STAFF' %}
+            <p class="chat-note">Đang chờ nhân viên trả lời. Bạn có thể nhắn thêm thông tin bên dưới.</p>
+        {% endif %}
+
+        <form method="post" action="{% url 'chat:send' %}" class="chat-form">
+            {% csrf_token %}
+            <label for="id_content" class="visually-hidden">Nội dung tin nhắn</label>
+            {{ form.content }}
+            <button type="submit" class="chat-send-btn">Gửi tin nhắn</button>
+        </form>
+
+        <div class="chat-actions">
+            <a href="{% url 'chat:chat' %}" class="chat-link">Tải lại tin nhắn</a>
+            {% if conversation %}
+                <form method="post" action="{% url 'chat:close' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="chat-link-btn">Kết thúc trò chuyện</button>
+                </form>
+            {% endif %}
+        </div>
+    </section>
+</main>
+{% include 'catalog/includes/shared_footer.html' %}
+</body>
+</html>

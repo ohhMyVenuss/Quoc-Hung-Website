@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|default:"Đơn hàng chờ xác nhận — Quốc Hùng Mobile" }}</title>
+    <meta name="description" content="Danh sách đơn hàng ở trạng thái Chờ xác nhận (PENDING_CONFIRMATION) dành cho nhân viên bán hàng và Admin.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+    <link rel="stylesheet" href="{% static 'css/orders.css' %}">
+</head>
+
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge="ĐƠN HÀNG" %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav='order_pending_confirmation' %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container" style="max-width: 1200px; margin: 0 auto; padding: 24px 16px;">
+
+
+                <div class="qhm-top-nav-row" style="margin-bottom: 20px;">
+                    <a href="{% url 'accounts:landing' %}" class="qhm-btn-back" id="btn-back-landing">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Về Cổng tài khoản</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <span>Quản lý Bán hàng</span>
+                        <span class="sep">/</span>
+                        <span class="current">Đơn hàng chờ xác nhận</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row" style="margin-bottom: 24px;">
+                    <div>
+                        <h1 class="qhm-mgmt-title"
+                            style="margin: 0; font-size: 22px; font-weight: 700; color: var(--navy-900);">
+                            ĐƠN HÀNG CHỜ XÁC NHẬN (PHASE 10)
+                        </h1>
+                        <p style="margin: 6px 0 0; font-size: 13.5px; color: var(--gray-600);">
+                            Thẩm định điều kiện thanh toán (COD chưa thu tiền hoặc QR đã xác minh thanh toán) và xác nhận đơn hàng sang Đã xác nhận (CONFIRMED) (SRS Mục VII.4, BR-OS01..09).
+                        </p>
+                    </div>
+                </div>
+
+
+                {% if messages %}
+                <div class="qhm-messages-container" style="margin-bottom: 20px;">
+                    {% for message in messages %}
+                    <div class="qhm-alert qhm-alert-{{ message.tags|default:'info' }}" role="alert"
+                        style="padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; font-size: 13.5px; background: {% if message.tags == 'success' %}#ecfdf5; color: #065f46; border: 1px solid #a7f3d0;{% elif message.tags == 'error' %}#fef2f2; color: #991b1b; border: 1px solid #fee2e2;{% else %}#eff6ff; color: #1e40af; border: 1px solid #dbeafe;{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+
+                <div class="qhm-filter-bar"
+                    style="background: white; border: 1px solid var(--gray-200); border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                    <form method="get" action="{% url 'orders:pending_orders_list' %}"
+                        style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;" id="form-search-pending-orders">
+                        <div style="flex: 1; min-width: 260px;">
+                            <input type="text" name="q" value="{{ search_query }}"
+                                placeholder="Tìm kiếm theo mã đơn, SĐT hoặc tên người nhận..."
+                                class="qhm-form-input" id="input-search-query"
+                                style="width: 100%; box-sizing: border-box; padding: 9px 12px; font-size: 13.5px; border: 1px solid var(--gray-300); border-radius: 6px;">
+                        </div>
+                        <div style="width: 200px;">
+                            <select name="method" class="qhm-form-input" id="select-method-filter"
+                                style="width: 100%; box-sizing: border-box; padding: 9px 12px; font-size: 13.5px; border: 1px solid var(--gray-300); border-radius: 6px;">
+                                <option value="">-- Tất cả phương thức --</option>
+                                <option value="COD" {% if method_filter == 'COD' %}selected{% endif %}>COD (Thu tiền tận nơi)</option>
+                                <option value="QR" {% if method_filter == 'QR' %}selected{% endif %}>QR (Chuyển khoản ngân hàng)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="qhm-btn-primary" id="btn-submit-search"
+                            style="padding: 9px 18px; font-size: 13.5px; font-weight: 600; background: var(--blue-600); color: white; border: none; border-radius: 6px; cursor: pointer;">
+                            Lọc danh sách
+                        </button>
+                        {% if search_query or method_filter %}
+                        <a href="{% url 'orders:pending_orders_list' %}" class="qhm-btn-secondary" id="btn-clear-filter"
+                            style="padding: 9px 14px; font-size: 13.5px; color: var(--gray-600); text-decoration: none;">
+                            Xóa bộ lọc
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
+
+
+                <div class="qhm-table-card"
+                    style="background: white; border: 1px solid var(--gray-200); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
+                    <div style="padding: 14px 20px; border-bottom: 1px solid var(--gray-200); background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 13.5px; font-weight: 600; color: var(--navy-900);">
+                            Tổng số đơn chờ xử lý: <strong>{{ total_count }}</strong>
+                        </span>
+                    </div>
+
+                    {% if orders %}
+                    <div style="overflow-x: auto;">
+                        <table class="qhm-data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px;">
+                            <thead>
+                                <tr style="background: #f1f5f9; color: var(--navy-900); border-bottom: 1px solid var(--gray-200);">
+                                    <th style="padding: 12px 16px; font-weight: 700;">Mã đơn hàng</th>
+                                    <th style="padding: 12px 16px; font-weight: 700;">Người nhận / SĐT</th>
+                                    <th style="padding: 12px 16px; font-weight: 700;">Phương thức</th>
+                                    <th style="padding: 12px 16px; font-weight: 700;">Trạng thái TT</th>
+                                    <th style="padding: 12px 16px; font-weight: 700;">Tổng thanh toán</th>
+                                    <th style="padding: 12px 16px; font-weight: 700;">Thời gian đặt</th>
+                                    <th style="padding: 12px 16px; font-weight: 700;">Điều kiện xác nhận</th>
+                                    <th style="padding: 12px 16px; font-weight: 700; text-align: center;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr style="border-bottom: 1px solid var(--gray-200);" id="row-order-{{ order.id }}">
+                                    <td style="padding: 14px 16px; font-weight: 700; color: var(--navy-900);">
+                                        <a href="{% url 'orders:management_detail' order.id %}" style="color: var(--blue-600); text-decoration: none;">
+                                            #{{ order.order_code }}
+                                        </a>
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        <div style="font-weight: 600; color: var(--navy-900);">{{ order.recipient_name }}</div>
+                                        <div style="font-size: 12px; color: var(--gray-500);">{{ order.recipient_phone }}</div>
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        <span style="font-weight: 600;">{{ order.payment.get_method_display|default:"Chưa rõ" }}</span>
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        {% if order.payment %}
+                                            {% if order.payment.status == 'PAID' %}
+                                            <span class="qhm-badge qhm-badge-paid">Đã thanh toán</span>
+                                            {% elif order.payment.status == 'UNPAID' %}
+                                            <span class="qhm-badge qhm-badge-unpaid">Chưa thanh toán</span>
+                                            {% elif order.payment.status == 'PENDING_VERIFY' %}
+                                            <span class="qhm-badge qhm-badge-pending">Chờ xác minh</span>
+                                            {% else %}
+                                            <span class="qhm-badge qhm-badge-unavailable">{{ order.payment.get_status_display }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="qhm-badge qhm-badge-unavailable">Thiếu TT</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 14px 16px; font-weight: 700; color: var(--blue-600);">
+                                        {{ order.grand_total_formatted }}
+                                    </td>
+                                    <td style="padding: 14px 16px; font-size: 12.5px; color: var(--gray-600);">
+                                        {{ order.created_at|date:"H:i d/m/Y" }}
+                                    </td>
+                                    <td style="padding: 14px 16px;">
+                                        {% if order.can_confirm %}
+                                        <span class="qhm-badge qhm-badge-paid" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;">
+                                            ✓ Đủ điều kiện
+                                        </span>
+                                        {% else %}
+                                        <span class="qhm-badge qhm-badge-pending" style="background: #fffbeb; color: #92400e; border: 1px solid #fde68a;">
+                                            ⏳ {{ order.eligibility_reason }}
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 14px 16px; text-align: center;">
+                                        <a href="{% url 'orders:management_detail' order.id %}" class="qhm-btn-sm" id="btn-view-order-{{ order.id }}"
+                                            style="display: inline-block; padding: 6px 14px; font-size: 12.5px; font-weight: 600; background: {% if order.can_confirm %}#1e40af{% else %}#64748b{% endif %}; color: white; text-decoration: none; border-radius: 4px;">
+                                            {% if order.can_confirm %}Xác nhận{% else %}Xem chi tiết{% endif %}
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    {% if page_obj.has_other_pages %}
+                    <div style="padding: 16px 20px; display: flex; justify-content: center; gap: 8px; border-top: 1px solid var(--gray-200);">
+                        {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if method_filter %}&method={{ method_filter }}{% endif %}"
+                            class="qhm-btn-secondary" style="padding: 6px 12px; font-size: 13px; text-decoration: none;">&laquo; Trang trước</a>
+                        {% endif %}
+                        <span style="padding: 6px 12px; font-size: 13px; color: var(--gray-600);">
+                            Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                        </span>
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if method_filter %}&method={{ method_filter }}{% endif %}"
+                            class="qhm-btn-secondary" style="padding: 6px 12px; font-size: 13px; text-decoration: none;">Trang sau &raquo;</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% else %}
+                    <div style="padding: 48px 20px; text-align: center; color: var(--gray-500);" id="empty-pending-orders">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                            stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px; opacity: 0.5;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 14 14"></polyline>
+                        </svg>
+                        <p style="margin: 0; font-size: 15px; font-weight: 600;">Hiện không có đơn hàng nào ở trạng thái Chờ xác nhận.</p>
+                        <p style="margin: 6px 0 0; font-size: 13px;">Tất cả đơn hàng mới đã được xử lý hoặc đang chờ các khâu thanh toán khác.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

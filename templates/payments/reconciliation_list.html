@@ -1,0 +1,272 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title|default:"Hồ sơ đối soát thanh toán QR — Quốc Hùng Mobile" }}</title>
+    <meta name="description" content="Danh sách các hồ sơ đối soát ngoại lệ chuyển khoản QR (Task 09.5).">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+    <link rel="stylesheet" href="{% static 'css/orders.css' %}">
+</head>
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge="ĐỐI SOÁT" %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav='payment_reconciliation' %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container" style="max-width: 1200px; margin: 0 auto; padding: 24px 16px;">
+
+
+                <div class="qhm-top-nav-row" style="margin-bottom: 20px;">
+                    <a href="{% url 'payments:verification_list' %}" class="qhm-btn-back" id="btn-back-verify-list">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Về Danh sách xác minh QR</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <a href="{% url 'payments:verification_list' %}" style="color: inherit; text-decoration: none;">Thanh toán QR</a>
+                        <span class="sep">/</span>
+                        <span class="current">Hồ sơ đối soát ngoại lệ</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h1 class="qhm-mgmt-title" style="margin: 0; font-size: 22px; font-weight: 700; color: var(--navy-900);">
+                            HỒ SƠ ĐỐI SOÁT NGOẠI LỆ THANH TOÁN QR
+                        </h1>
+                        <p style="margin: 6px 0 0; font-size: 13.5px; color: var(--gray-600);">
+                            Theo dõi và xử lý các trường hợp lệch số tiền, sai mã tham chiếu, giao dịch chưa rõ hoặc chuyển tiền sau hủy (SRS Bảng 19 & BR-PAY-06..08).
+                        </p>
+                    </div>
+                </div>
+
+
+                {% if messages %}
+                <div class="qhm-messages-container" style="margin-bottom: 20px;" id="msg-container">
+                    {% for message in messages %}
+                        <div class="qhm-alert qhm-alert-{{ message.tags|default:'info' }}" role="alert" style="padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; font-size: 13.5px;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+
+                {% if count_escalated > 0 and is_admin_user %}
+                <div class="qhm-alert" id="admin-escalation-alert-banner" role="alert" style="background-color: #fee2e2; border: 1px solid #ef4444; color: #991b1b; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 1px 3px rgba(220, 38, 38, 0.1);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 24px;" aria-hidden="true">⚠️</span>
+                        <div>
+                            <strong style="font-size: 14px;">CẢNH BÁO QUẢN TRỊ (ADMIN): Có {{ count_escalated }} hồ sơ đối soát đã quá hạn SLA 12 giờ làm việc và được chuyển cấp!</strong>
+                            <p style="margin: 3px 0 0; font-size: 13px; color: #7f1d1d;">Các hồ sơ này cần Quản trị viên kiểm tra và chỉ đạo xử lý dứt điểm. Trạng thái đơn và toàn bộ giữ kho/voucher vẫn được bảo toàn nguyên trạng.</p>
+                        </div>
+                    </div>
+                    <a href="?status=ESCALATED" class="qhm-btn-primary" style="background-color: #dc2626; border-color: #dc2626; color: white; padding: 8px 16px; font-size: 13px; font-weight: 700; text-decoration: none; border-radius: 6px; white-space: nowrap;" id="btn-view-escalated-alert">
+                        Xem hồ sơ chuyển cấp ({{ count_escalated }}) »
+                    </a>
+                </div>
+                {% endif %}
+
+
+                <div class="qhm-tabs-bar" style="display: flex; gap: 8px; border-bottom: 2px solid var(--gray-200); margin-bottom: 20px; overflow-x: auto; padding-bottom: 2px;">
+                    <a href="?status=OPEN{% if reason_filter %}&reason={{ reason_filter }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}"
+                       class="qhm-tab-link {% if status_tab == 'OPEN' %}active{% endif %}"
+                       style="padding: 10px 16px; font-size: 13.5px; font-weight: 600; text-decoration: none; border-bottom: 2px solid {% if status_tab == 'OPEN' %}var(--blue-600){% else %}transparent{% endif %}; color: {% if status_tab == 'OPEN' %}var(--blue-600){% else %}var(--gray-600){% endif %}; white-space: nowrap;">
+                        Chờ xử lý ({{ count_open }})
+                    </a>
+                    <a href="?status=ESCALATED{% if reason_filter %}&reason={{ reason_filter }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}"
+                       class="qhm-tab-link {% if status_tab == 'ESCALATED' %}active{% endif %}"
+                       id="tab-escalated"
+                       style="padding: 10px 16px; font-size: 13.5px; font-weight: 600; text-decoration: none; border-bottom: 2px solid {% if status_tab == 'ESCALATED' %}#dc2626{% else %}transparent{% endif %}; color: {% if status_tab == 'ESCALATED' %}#dc2626{% else %}var(--gray-600){% endif %}; white-space: nowrap;">
+                        Đã chuyển cấp quản trị ({{ count_escalated }})
+                    </a>
+                    <a href="?status=RESOLVED{% if reason_filter %}&reason={{ reason_filter }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}"
+                       class="qhm-tab-link {% if status_tab == 'RESOLVED' %}active{% endif %}"
+                       style="padding: 10px 16px; font-size: 13.5px; font-weight: 600; text-decoration: none; border-bottom: 2px solid {% if status_tab == 'RESOLVED' %}var(--blue-600){% else %}transparent{% endif %}; color: {% if status_tab == 'RESOLVED' %}var(--blue-600){% else %}var(--gray-600){% endif %}; white-space: nowrap;">
+                        Đã giải quyết ({{ count_resolved }})
+                    </a>
+                    <a href="?status=all{% if reason_filter %}&reason={{ reason_filter }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}"
+                       class="qhm-tab-link {% if status_tab == 'all' %}active{% endif %}"
+                       style="padding: 10px 16px; font-size: 13.5px; font-weight: 600; text-decoration: none; border-bottom: 2px solid {% if status_tab == 'all' %}var(--blue-600){% else %}transparent{% endif %}; color: {% if status_tab == 'all' %}var(--blue-600){% else %}var(--gray-600){% endif %}; white-space: nowrap;">
+                        Tất cả hồ sơ ({{ count_all }})
+                    </a>
+                </div>
+
+
+                <div class="qhm-filter-bar" style="background: white; border: 1px solid var(--gray-200); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;">
+                    <form method="get" action="" style="display: flex; gap: 10px; flex-wrap: wrap; margin: 0; align-items: center;">
+                        <input type="hidden" name="status" value="{{ status_tab }}">
+
+                        <div style="flex: 1; min-width: 250px;">
+                            <input type="text" name="q" value="{{ search_q }}" placeholder="Tìm theo mã đơn, mã QR, tên khách, số điện thoại, ghi chú..." class="qhm-form-input" style="width: 100%; padding: 8px 12px; font-size: 13.5px; border: 1px solid var(--gray-300); border-radius: 6px;">
+                        </div>
+
+                        <div>
+                            <select name="reason" class="qhm-form-input" style="padding: 8px 12px; font-size: 13.5px; border: 1px solid var(--gray-300); border-radius: 6px;">
+                                <option value="">-- Tất cả lý do đối soát --</option>
+                                {% for r_code, r_label in reasons %}
+                                    <option value="{{ r_code }}" {% if reason_filter == r_code %}selected{% endif %}>{{ r_label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="submit" class="qhm-btn-primary" style="padding: 8px 18px; font-size: 13.5px; font-weight: 600; border-radius: 6px; cursor: pointer;">
+                            Lọc
+                        </button>
+                        {% if search_q or reason_filter %}
+                            <a href="?status={{ status_tab }}" class="qhm-btn-secondary" style="padding: 8px 14px; font-size: 13px; text-decoration: none; border-radius: 6px; border: 1px solid var(--gray-300); color: var(--gray-700);">
+                                Xóa bộ lọc
+                            </a>
+                        {% endif %}
+                    </form>
+                </div>
+
+
+                <div class="qhm-table-card" style="background: white; border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px;">
+                            <thead>
+                                <tr style="background: var(--gray-50); border-bottom: 1px solid var(--gray-200); color: var(--navy-900);">
+                                    <th style="padding: 12px 16px; font-weight: 700;">Hồ sơ</th>
+                                    <th style="padding: 12px 16px; font-weight: 700;">Đơn hàng</th>
+                                    <th style="padding: 12px 16px; font-weight: 700;">Lý do đối soát</th>
+                                    <th style="padding: 12px 16px; font-weight: 700;">Trạng thái đơn</th>
+                                    <th style="padding: 12px 16px; font-weight: 700;">Người mở</th>
+                                    <th style="padding: 12px 16px; font-weight: 700;">Thời điểm mở</th>
+                                    <th style="padding: 12px 16px; font-weight: 700; text-align: right;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in page_obj %}
+                                <tr style="border-bottom: 1px solid var(--gray-100);" id="reconciliation-row-{{ r.id }}">
+                                    <td style="padding: 12px 16px;">
+                                        <strong style="color: var(--blue-700);">#{{ r.id }}</strong>
+                                        <div>
+                                            {% if r.status == 'OPEN' %}
+                                                <span class="qhm-badge" id="badge-open-{{ r.id }}" style="background-color: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">
+                                                    CHỜ XỬ LÝ
+                                                </span>
+                                            {% elif r.status == 'ESCALATED' %}
+                                                <span class="qhm-badge" id="badge-escalated-{{ r.id }}" style="background-color: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">
+                                                    ĐÃ CHUYỂN CẤP
+                                                </span>
+                                            {% elif r.status == 'RESOLVED' %}
+                                                <span class="qhm-badge" id="badge-resolved-{{ r.id }}" style="background-color: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">
+                                                    ĐÃ GIẢI QUYẾT
+                                                </span>
+                                            {% else %}
+                                                <span class="qhm-badge" style="background-color: var(--gray-200); color: var(--navy-900); padding: 2px 8px; border-radius: 4px; font-size: 11px;">
+                                                    {{ r.get_status_display }}
+                                                </span>
+                                            {% endif %}
+                                            {% if r.sla_due_at %}
+                                                <div style="font-size: 11px; color: {% if r.status == 'ESCALATED' %}#dc2626; font-weight: 700;{% else %}#b45309;{% endif %} margin-top: 2px;">
+                                                    SLA: {{ r.sla_due_at|date:"H:i d/m" }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px;">
+                                        {% if r.payment and r.payment.order %}
+                                            <a href="{% url 'payments:verify_payment' r.payment.pk %}" style="font-weight: 700; color: var(--blue-600); text-decoration: none;">
+                                                #{{ r.payment.order.order_code }}
+                                            </a>
+                                            <div style="font-size: 12px; color: var(--gray-600);">
+                                                {{ r.payment.expected_amount_formatted }}
+                                            </div>
+                                        {% else %}
+                                            <span style="color: var(--gray-500);">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 12px 16px;">
+                                        <div style="font-weight: 600; color: var(--navy-900);">
+                                            {{ r.get_reason_code_display }}
+                                        </div>
+                                        {% if r.notes %}
+                                            <div style="font-size: 12px; color: var(--gray-500); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                {{ r.notes }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 12px 16px;">
+                                        {% if r.payment and r.payment.order %}
+                                            {% if r.payment.order.order_status == 'PENDING_RECONCILIATION' %}
+                                                <span class="qhm-badge" style="background-color: #fee2e2; color: #991b1b; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 12px;">
+                                                    Chờ đối soát
+                                                </span>
+                                            {% elif r.payment.order.order_status == 'CANCELLED' %}
+                                                <span class="qhm-badge" style="background-color: var(--gray-200); color: var(--gray-700); padding: 3px 8px; border-radius: 4px; font-size: 12px;">
+                                                    Đã hủy
+                                                </span>
+                                            {% elif r.payment.order.order_status == 'EXPIRED' %}
+                                                <span class="qhm-badge" style="background-color: #fef2f2; color: #b91c1c; padding: 3px 8px; border-radius: 4px; font-size: 12px;">
+                                                    Hết hạn
+                                                </span>
+                                            {% else %}
+                                                <span class="qhm-badge" style="background-color: var(--gray-100); color: var(--gray-800); padding: 3px 8px; border-radius: 4px; font-size: 12px;">
+                                                    {{ r.payment.order.get_order_status_display }}
+                                                </span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 12px 16px;">
+                                        <span style="font-size: 13px; color: var(--gray-700);">
+                                            {{ r.handled_by.username|default:"Hệ thống" }}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 12px 16px; font-size: 12.5px; color: var(--gray-600);">
+                                        {{ r.created_at|date:"H:i:s d/m/Y" }}
+                                    </td>
+                                    <td style="padding: 12px 16px; text-align: right;">
+                                        <a href="{% url 'payments:reconciliation_detail' r.pk %}"
+                                           class="qhm-btn-secondary"
+                                           style="padding: 6px 12px; font-size: 12.5px; font-weight: 600; text-decoration: none; border-radius: 6px; border: 1px solid var(--blue-600); color: var(--blue-600);"
+                                           id="btn-view-reconciliation-{{ r.id }}">
+                                            Xem chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" style="padding: 36px 16px; text-align: center; color: var(--gray-500);">
+                                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 10px; color: var(--gray-400); display: block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                        Không có hồ sơ đối soát nào phù hợp với điều kiện tìm kiếm.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    {% if page_obj.has_other_pages %}
+                    <div style="display: flex; justify-content: center; gap: 8px; padding: 16px; border-top: 1px solid var(--gray-200);">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}&status={{ status_tab }}{% if reason_filter %}&reason={{ reason_filter }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}" class="qhm-btn-secondary" style="padding: 6px 12px; font-size: 13px; text-decoration: none; border-radius: 4px; border: 1px solid var(--gray-300);">« Trang trước</a>
+                        {% endif %}
+                        <span style="padding: 6px 12px; font-size: 13px; color: var(--gray-600);">Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}&status={{ status_tab }}{% if reason_filter %}&reason={{ reason_filter }}{% endif %}{% if search_q %}&q={{ search_q }}{% endif %}" class="qhm-btn-secondary" style="padding: 6px 12px; font-size: 13px; text-decoration: none; border-radius: 4px; border: 1px solid var(--gray-300);">Trang sau »</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

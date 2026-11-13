@@ -1,0 +1,63 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tin nhắn khách hàng — Quốc Hùng Mobile</title>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+</head>
+<body class="chat-body">
+{% include 'includes/account_navigation.html' %}
+
+<main class="chat-page chat-page-wide">
+    <section class="chat-card" aria-labelledby="inbox-title">
+        <header class="chat-card-head">
+            <div>
+                <h1 id="inbox-title">Tin nhắn khách hàng</h1>
+                <p class="chat-sub">Các hội thoại chờ nhân viên bán hàng hoặc Admin trả lời.</p>
+            </div>
+        </header>
+
+        {% if messages %}
+            <ul class="chat-flash" role="status">
+                {% for message in messages %}
+                    <li class="chat-flash-{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <nav class="chat-tabs" aria-label="Lọc theo trạng thái">
+            {% for value, label in status_tabs %}
+                <a href="{% url 'chat:staff_inbox' %}?status={{ value }}"
+                   class="chat-tab {% if value == current_status %}active{% endif %}"
+                   {% if value == current_status %}aria-current="page"{% endif %}>{{ label }}</a>
+            {% endfor %}
+        </nav>
+
+        {% if rows %}
+            <ul class="inbox-list">
+                {% for row in rows %}
+                    <li class="inbox-item">
+                        <a href="{% url 'chat:staff_conversation' row.conversation.pk %}" class="inbox-link">
+                            <span class="inbox-name">{{ row.conversation.customer_label }}</span>
+                            <span class="inbox-preview">
+                                {% if row.last_message %}{{ row.last_message.content|truncatechars:90 }}{% else %}Chưa có tin nhắn{% endif %}
+                            </span>
+                            <span class="inbox-meta">
+                                Bắt đầu {{ row.conversation.started_at|date:'H:i d/m/Y' }}
+                                {% if row.conversation.assigned_staff %} — phụ trách: {{ row.conversation.assigned_staff.username }}{% endif %}
+                            </span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="chat-empty">Không có hội thoại nào ở trạng thái này.</p>
+        {% endif %}
+    </section>
+</main>
+{% include 'catalog/includes/shared_footer.html' %}
+</body>
+</html>

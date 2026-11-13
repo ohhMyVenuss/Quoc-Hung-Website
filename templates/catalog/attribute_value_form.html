@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} — Quốc Hùng Mobile</title>
+    <meta name="description" content="{{ title }} trong hệ thống quản trị Quốc Hùng Mobile.">
+    <link rel="stylesheet" href="{% static 'css/catalog.css' %}">
+</head>
+<body class="qhm-catalog-body">
+
+
+    {% include 'catalog/includes/management_header.html' with module_badge="THUỘC TÍNH SẢN PHẨM" %}
+
+    <div class="qhm-mgmt-layout">
+
+        {% include 'catalog/includes/management_sidebar.html' with active_nav='catalog_attributes' %}
+
+
+        <main class="qhm-mgmt-main" role="main">
+            <div class="qhm-mgmt-container">
+
+                <div class="qhm-top-nav-row">
+                    <a href="{% url 'catalog:attribute_list' %}" class="qhm-btn-back" id="btn-back-attributes">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                        <span>Quay lại Thuộc tính</span>
+                    </a>
+                    <div class="qhm-breadcrumb" aria-label="Đường dẫn trang">
+                        <span>Hệ thống Quản trị</span>
+                        <span class="sep">/</span>
+                        <span>Phân hệ Catalog</span>
+                        <span class="sep">/</span>
+                        <a href="{% url 'catalog:attribute_list' %}">Thuộc tính sản phẩm</a>
+                        <span class="sep">/</span>
+                        <span class="current">{{ title }}</span>
+                    </div>
+                </div>
+
+
+                <div class="qhm-mgmt-title-row">
+                    <h1 class="qhm-mgmt-title">{{ title|upper }}</h1>
+                </div>
+
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="qhm-alert qhm-alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+                            <div>{{ message }}</div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if form.non_field_errors %}
+                    <div class="qhm-alert qhm-alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+
+                <div class="qhm-form-card">
+                    <div class="qhm-form-header">
+                        <h2>THÔNG TIN GIÁ TRỊ THUỘC TÍNH</h2>
+                        <p>Thêm mới hoặc chỉnh sửa giá trị cụ thể được gán cho thuộc tính cha</p>
+                    </div>
+
+
+                    <div class="qhm-parent-attr-display" id="parent-attr-box">
+                        <div class="qhm-parent-attr-display-left">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--blue-600);" aria-hidden="true">
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                            </svg>
+                            <div>
+                                <span style="color: var(--gray-600); font-size: 13px;">Thuộc tính cha:</span>
+                                <span class="qhm-parent-attr-badge" id="parent-attr-name">{{ attribute.name }}</span>
+                            </div>
+                        </div>
+                        <div class="qhm-parent-attr-lock-note">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            <span>Cố định (không thể đổi thuộc tính khác)</span>
+                        </div>
+                    </div>
+
+                    <form method="post" novalidate id="attribute-value-form">
+                        {% csrf_token %}
+
+
+                        <div class="qhm-form-group">
+                            <div class="qhm-form-label-row">
+                                <label for="{{ form.value.id_for_label }}" class="qhm-form-label">
+                                    Giá trị thuộc tính: <span class="qhm-form-req">* (Bắt buộc)</span>
+                                </label>
+                                <span class="qhm-char-counter" id="attr-val-counter">0 / 80 ký tự</span>
+                            </div>
+                            <input type="text" name="value" id="{{ form.value.id_for_label }}" value="{{ form.value.value|default:'' }}" class="qhm-form-control" maxlength="80" placeholder="Ví dụ: Đen Titanium, 256GB, 8GB..." required autocomplete="off" oninput="updateValCounter(this)">
+                            <div class="qhm-form-help">
+                                Tối đa 80 ký tự. Giá trị là duy nhất trong phạm vi thuộc tính "<strong>{{ attribute.name }}</strong>" (hệ thống tự động loại bỏ khoảng trắng thừa và kiểm tra không phân biệt chữ hoa/thường tiếng Việt). Các thuộc tính khác nhau có thể dùng chung tên giá trị.
+                            </div>
+                            {% if form.value.errors %}
+                                <div class="qhm-form-error" id="value-error">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                    <span>{% for err in form.value.errors %}{{ err }}{% endfor %}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+
+                        <div class="qhm-form-actions">
+                            <button type="submit" class="qhm-btn-primary" id="btn-save-attribute-value">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                    <polyline points="7 3 7 8 15 8"></polyline>
+                                </svg>
+                                <span>{% if is_edit %}Lưu thay đổi{% else %}Thêm giá trị{% endif %}</span>
+                            </button>
+                            <a href="{% url 'catalog:attribute_list' %}" class="qhm-btn-secondary" id="btn-cancel-attribute-value">
+                                Hủy bỏ
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+
+    {% include 'catalog/includes/shared_footer.html' %}
+
+    <script>
+    function updateValCounter(input) {
+        const counter = document.getElementById('attr-val-counter');
+        if (counter && input) {
+            const len = input.value.length;
+            counter.textContent = `${len} / 80 ký tự`;
+            if (len > 80) {
+                counter.style.color = 'var(--red-600)';
+                counter.style.fontWeight = '700';
+            } else {
+                counter.style.color = 'var(--gray-500)';
+                counter.style.fontWeight = '500';
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const valInput = document.getElementById('{{ form.value.id_for_label }}');
+        if (valInput) {
+            updateValCounter(valInput);
+            valInput.focus();
+        }
+    });
+    </script>
+
+</body>
+</html>

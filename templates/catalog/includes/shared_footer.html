@@ -1,0 +1,61 @@
+{% load static %}
+<footer class="qhm-footer" role="contentinfo">
+    <div class="qhm-footer-inner">
+        <div class="qhm-footer-grid">
+
+            <div class="qhm-footer-brand-col">
+                <div class="qhm-footer-logo-card">
+                    <div class="qhm-brand-icon-h" aria-hidden="true">H</div>
+                    <div class="qhm-footer-logo-text">QUỐC HÙNG MOBILE</div>
+                </div>
+                <p class="qhm-footer-brand-desc">
+                    Hệ thống bán lẻ thiết bị di động và sản phẩm công nghệ chính hãng.
+                </p>
+            </div>
+
+
+            <div>
+                <h4 class="qhm-footer-col-title">Sản phẩm &amp; Dịch vụ</h4>
+                <ul class="qhm-footer-list">
+                    <li><a href="{% url 'catalog:public_catalog' %}" class="qhm-footer-link">Danh mục sản phẩm</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'accounts:landing' %}" class="qhm-footer-link">Cổng điều khiển tài khoản</a></li>
+                        {% if is_customer %}
+                            <li><a href="{% url 'accounts:profile' %}" class="qhm-footer-link">Thông tin tài khoản</a></li>
+                        {% endif %}
+                    {% else %}
+                        <li><a href="{% url 'accounts:login' %}" class="qhm-footer-link">Đăng nhập tài khoản</a></li>
+                        <li><a href="{% url 'accounts:register' %}" class="qhm-footer-link">Đăng ký thành viên</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+
+            {% if is_sales_staff or is_inventory_staff %}
+            <div>
+                <h4 class="qhm-footer-col-title">Quản trị hệ thống</h4>
+                <ul class="qhm-footer-list">
+                    {% if is_sales_staff %}
+                        <li><a href="{% url 'catalog:category_list' %}" class="qhm-footer-link">Quản lý danh mục</a></li>
+                        <li><a href="{% url 'catalog:product_list' %}" class="qhm-footer-link">Quản lý sản phẩm</a></li>
+                        <li><a href="{% url 'chat:staff_inbox' %}" class="qhm-footer-link" id="footer-link-chat-staff">Hộp thư Chat khách</a></li>
+                    {% endif %}
+                    {% if is_inventory_staff %}
+                        <li><a href="{% url 'inventory:inventory_list' %}" class="qhm-footer-link" id="footer-link-inventory">Quản lý tồn kho</a></li>
+                    {% endif %}
+                    {% if is_admin %}
+                        <li><a href="{% url 'accounts:staff_list' %}" class="qhm-footer-link">Quản lý nhân viên</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+
+
+        <div class="qhm-footer-bottom">
+            <div>&copy; 2026 Quốc Hùng Mobile. Giữ toàn quyền.</div>
+            <div>Uy tín hàng đầu &bull; Phục vụ tận tâm</div>
+        </div>
+    </div>
+</footer>
+{% include 'includes/chat_launcher.html' %}
